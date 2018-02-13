@@ -11,7 +11,7 @@ using Moq;
 using Newtonsoft.Json;
 using Xunit;
 
-namespace PartialResponse.AspNetCore.Mvc.Formatters.Json
+namespace PartialResponse.AspNetCore.Mvc.Formatters.Json.Tests
 {
     public class PartialJsonOutputFormatterTests
     {

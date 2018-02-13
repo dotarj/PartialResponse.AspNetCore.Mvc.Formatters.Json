@@ -14,7 +14,7 @@ using Newtonsoft.Json;
 using PartialResponse.AspNetCore.Mvc.Formatters.Json.Internal;
 using Xunit;
 
-namespace PartialResponse.AspNetCore.Mvc.Formatters.Json
+namespace PartialResponse.AspNetCore.Mvc.Formatters.Json.Tests
 {
     public class PartialJsonResultExecutorTests
     {
