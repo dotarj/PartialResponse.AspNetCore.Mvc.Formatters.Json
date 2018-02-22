@@ -1,7 +1,9 @@
-using System.Collections.Generic ;
+// Copyright (c) Arjen Post. See LICENSE and NOTICE in the project root for license information.
+
+using System.Collections.Generic;
 using Microsoft.AspNetCore.Mvc;
 
-namespace PartialResponse.AspNetCore.Mvc.Demo.Controllers
+namespace PartialResponse.AspNetCore.Mvc.Formatters.Json.Demo.Controllers
 {
     public class FormatterController : Controller
     {
