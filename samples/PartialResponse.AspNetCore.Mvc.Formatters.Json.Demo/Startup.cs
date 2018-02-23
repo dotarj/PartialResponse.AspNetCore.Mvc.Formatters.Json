@@ -11,13 +11,11 @@ namespace PartialResponse.AspNetCore.Mvc.Formatters.Json.Demo
 {
     public class Startup
     {
-        private readonly IHostingEnvironment hostingEnvironment;
         private readonly IConfiguration configuration;
 
-        public Startup(IHostingEnvironment env, IConfiguration config)
+        public Startup(IConfiguration configuration)
         {
-            this.hostingEnvironment = env;
-            this.configuration = config;
+            this.configuration = configuration;
         }
 
         public void ConfigureServices(IServiceCollection services)
@@ -29,7 +27,7 @@ namespace PartialResponse.AspNetCore.Mvc.Formatters.Json.Demo
                 .AddPartialJsonFormatters();
         }
 
-        public void Configure(IApplicationBuilder app, IHostingEnvironment env, ILoggerFactory loggerFactory)
+        public void Configure(IApplicationBuilder app, ILoggerFactory loggerFactory)
         {
             loggerFactory.AddConsole(this.configuration.GetSection("Logging"));
 
