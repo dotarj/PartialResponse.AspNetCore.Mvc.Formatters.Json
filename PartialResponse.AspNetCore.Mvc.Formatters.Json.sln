@@ -15,6 +15,12 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PartialResponse.AspNetCore.
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PartialResponse.AspNetCore.Mvc.Formatters.Json.Demo", "samples\PartialResponse.AspNetCore.Mvc.Formatters.Json.Demo\PartialResponse.AspNetCore.Mvc.Formatters.Json.Demo.csproj", "{F65AB962-E8AB-4A2B-9178-322EEA67F9C5}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{E51F9EAF-B010-4AFF-B44C-79E180E97093}"
+	ProjectSection(SolutionItems) = preProject
+		.appveyor.yml = .appveyor.yml
+		stylecop.json = stylecop.json
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
