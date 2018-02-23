@@ -1,4 +1,10 @@
-os: Visual Studio 2017
+environment:
+  MYGET_API_KEY:
+    secure: nXDnbkmLZ0yeSj623ZeiGO+be5JhivxxrgiJ9lgHLVH/PKoI52UO2Kt6965QAAM+
+  NUGET_API_KEY:
+    secure: +0GZhozUx/pj7Dn0mIlAgFAEYz45uuEbdqH/2/VGNVtsL1GJDRB64qOmCx/tnWR
+
+image: Visual Studio 2017
 
 skip_tags: false
 
@@ -113,9 +119,16 @@ artifacts:
   - path: artifacts\$(APPVEYOR_PROJECT_NAME).$(RELEASE_VERSION).symbols.nupkg
 
 deploy:
-  provider: NuGet
-  api_key:
-    secure: +0GZhozUx/pj7Dn0mIlAgFAEYz45uuEbdqH/2/VGNVtsL1GJDRB64qOmCx/tnWR
+- provider: NuGet
+  server: https://www.myget.org/F/partialresponse/api/v2
+  api_key: $(MYGET_API_KEY)
+  skip_symbols: false
+  symbol_server: https://www.myget.org/F/partialresponse/symbols/api/v2/package
+  on:
+    appveyor_repo_tag: false
+
+- provider: NuGet
+  api_key: $(NUGET_API_KEY)
   skip_symbols: false
   artifact: /.*\.nupkg/
   on:
