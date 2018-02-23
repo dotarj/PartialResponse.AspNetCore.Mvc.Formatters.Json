@@ -3,7 +3,7 @@
 using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Hosting;
 
-namespace PartialResponse.AspNetCore.Mvc.Formatters.Json.Demo
+namespace PartialResponse.AspNetCore.Mvc.Formatters.Json.Samples
 {
     public class Program
     {

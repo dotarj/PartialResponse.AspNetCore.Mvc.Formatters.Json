@@ -7,7 +7,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using PartialResponse.Extensions.DependencyInjection;
 
-namespace PartialResponse.AspNetCore.Mvc.Formatters.Json.Demo
+namespace PartialResponse.AspNetCore.Mvc.Formatters.Json.Samples
 {
     public class Startup
     {

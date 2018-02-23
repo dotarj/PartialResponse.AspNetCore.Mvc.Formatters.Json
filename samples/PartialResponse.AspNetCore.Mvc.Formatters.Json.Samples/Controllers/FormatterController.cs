@@ -3,7 +3,7 @@
 using System.Collections.Generic;
 using Microsoft.AspNetCore.Mvc;
 
-namespace PartialResponse.AspNetCore.Mvc.Formatters.Json.Demo.Controllers
+namespace PartialResponse.AspNetCore.Mvc.Formatters.Json.Samples.Controllers
 {
     public class FormatterController : Controller
     {
