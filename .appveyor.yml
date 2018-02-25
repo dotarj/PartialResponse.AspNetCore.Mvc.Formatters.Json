@@ -4,7 +4,7 @@ environment:
   MYGET_API_KEY:
     secure: nXDnbkmLZ0yeSj623ZeiGO+be5JhivxxrgiJ9lgHLVH/PKoI52UO2Kt6965QAAM+
   NUGET_API_KEY:
-    secure: +0GZhozUx/pj7Dn0mIlAgFAEYz45uuEbdqH/2/VGNVtsL1GJDRB64qOmCx/tnWR
+    secure: CbJ7DaN2P9YI9zVjNR98Ld3gM0RXqxo91R0wLUO4PcTAVj65mF48vzMNr7JnMppM
 
 image: Visual Studio 2017
 
