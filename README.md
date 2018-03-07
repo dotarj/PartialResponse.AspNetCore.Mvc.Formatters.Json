@@ -2,8 +2,8 @@
 
 [![apache](https://img.shields.io/badge/license-Apache%202-green.svg)](https://raw.githubusercontent.com/dotarj/PartialResponse.AspNetCore.Mvc.Formatters.Json/master/LICENSE)
 [![nuget](https://img.shields.io/nuget/v/PartialResponse.AspNetCore.Mvc.Formatters.Json.svg)](https://www.nuget.org/packages/PartialResponse.AspNetCore.Mvc.Formatters.Json)
-[![myget](https://img.shields.io/myget/partialresponse/v/PartialResponse.AspNetCore.Mvc.Formatters.Json.svg)](https://www.myget.org/feed/partialresponse/package/nuget/PartialResponse.AspNetCore.Mvc.Formatters.Json)
-[![Build status](https://ci.appveyor.com/api/projects/status/y8kahoej4avaqwwm?svg=true)](https://ci.appveyor.com/project/dotarj/partialresponse-aspnetcore-mvc-formatters-json)
+[![appveyor](https://ci.appveyor.com/api/projects/status/y8kahoej4avaqwwm?svg=true)](https://ci.appveyor.com/project/dotarj/partialresponse-aspnetcore-mvc-formatters-json)
+[![sonarqube](https://sonarcloud.io/api/badges/gate?key=PartialResponse.AspNetCore.Mvc.Formatters.Json)](https://sonarcloud.io/dashboard?id=PartialResponse.AspNetCore.Mvc.Formatters.Json)
 [![codecov](https://codecov.io/gh/dotarj/PartialResponse.AspNetCore.Mvc.Formatters.Json/branch/master/graph/badge.svg)](https://codecov.io/gh/dotarj/PartialResponse.AspNetCore.Mvc.Formatters.Json)
 
 PartialResponse.AspNetCore.Mvc.Formatters.Json provides JSON partial response (partial resource) support for ASP.NET Core MVC. This package is also [available for ASP.NET Web API](https://github.com/dotarj/PartialResponse/).
@@ -57,6 +57,6 @@ In practice, these rules often allow several different `fields` parameter values
 * `fields=items(id,snippet/title,snippet/position)`
 * `fields=items(id,snippet(title,position))`
 
-**Note:** As with all query parameter values, the 'fields' parameter value must be URL encoded. For better readability, the examples in this document omit the encoding.
+**Note:** As with all query parameter values, the `fields` parameter value must be URL encoded. For better readability, the examples in this document omit the encoding.
 
 **Note:** Due to the relatively slow performance of LINQ to JSON (Json.NET), the usage of PartialJsonOutputFormatter has a performance impact compared to the regular Json.NET serializer. Because of the reduced traffic, the overhead in time could be neglected.
