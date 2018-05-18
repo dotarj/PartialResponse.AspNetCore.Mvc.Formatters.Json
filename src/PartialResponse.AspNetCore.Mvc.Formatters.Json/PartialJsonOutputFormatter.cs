@@ -7,9 +7,12 @@ using System.Text;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.Formatters;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using PartialResponse.AspNetCore.Mvc.Formatters.Json.Internal;
 using PartialResponse.Core;
+using PartialResponse.Extensions.DependencyInjection;
 
 namespace PartialResponse.AspNetCore.Mvc.Formatters
 {
@@ -81,14 +84,22 @@ namespace PartialResponse.AspNetCore.Mvc.Formatters
                 throw new ArgumentNullException(nameof(selectedEncoding));
             }
 
-            var request = context.HttpContext.Request;
             var response = context.HttpContext.Response;
+            var serviceProvider = context.HttpContext.RequestServices;
+            var mvcPartialJsonFields = serviceProvider.GetService<MvcPartialJsonFields>();
+            var mvcPartialJsonOptions = serviceProvider.GetService<IOptions<MvcPartialJsonOptions>>();
 
             Fields? fields = null;
 
             if (!this.ShouldBypassPartialResponse(context.HttpContext))
             {
-                if (!request.TryGetFields(out fields))
+                var fieldsResult = mvcPartialJsonFields.GetFieldsResult();
+                if (fieldsResult.IsPresent && !fieldsResult.IsError)
+                {
+                    fields = fieldsResult.Fields;
+                }
+
+                if (fieldsResult.IsError && !mvcPartialJsonOptions.Value.IgnoreParseErrors)
                 {
                     response.StatusCode = 400;
 
