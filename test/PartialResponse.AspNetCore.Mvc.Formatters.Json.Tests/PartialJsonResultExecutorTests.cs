@@ -1,6 +1,7 @@
 // Copyright (c) Arjen Post. See LICENSE and NOTICE in the project root for license information.
 
 using System.Buffers;
+using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using System.Threading.Tasks;
@@ -12,6 +13,7 @@ using Microsoft.Extensions.Options;
 using Moq;
 using Newtonsoft.Json;
 using PartialResponse.AspNetCore.Mvc.Formatters.Json.Internal;
+using PartialResponse.Extensions.DependencyInjection;
 using Xunit;
 
 namespace PartialResponse.AspNetCore.Mvc.Formatters.Json.Tests
@@ -20,8 +22,10 @@ namespace PartialResponse.AspNetCore.Mvc.Formatters.Json.Tests
     {
         private readonly PartialJsonResultExecutor executor;
         private readonly ActionContext actionContext;
+        private readonly MvcPartialJsonFields mvcPartialJsonFields;
         private readonly IHttpResponseStreamWriterFactory writerFactory = Mock.Of<IHttpResponseStreamWriterFactory>();
         private readonly ILogger<PartialJsonResultExecutor> logger = Mock.Of<ILogger<PartialJsonResultExecutor>>();
+        private readonly ILogger<MvcPartialJsonFields> loggerMvcPartialJsonFields = Mock.Of<ILogger<MvcPartialJsonFields>>();
         private readonly IOptions<MvcPartialJsonOptions> options = Mock.Of<IOptions<MvcPartialJsonOptions>>();
         private readonly MvcPartialJsonOptions partialJsonOptions = new MvcPartialJsonOptions();
         private readonly HttpContext httpContext = Mock.Of<HttpContext>();
@@ -29,6 +33,7 @@ namespace PartialResponse.AspNetCore.Mvc.Formatters.Json.Tests
         private readonly HttpResponse httpResponse = Mock.Of<HttpResponse>();
         private readonly IQueryCollection queryCollection = Mock.Of<IQueryCollection>();
         private readonly StringBuilder body = new StringBuilder();
+        private readonly IHttpContextAccessor httpContextAccessor = Mock.Of<IHttpContextAccessor>();
 
         public PartialJsonResultExecutorTests()
         {
@@ -44,6 +49,10 @@ namespace PartialResponse.AspNetCore.Mvc.Formatters.Json.Tests
                 .SetupGet(httpContext => httpContext.Response)
                 .Returns(this.httpResponse);
 
+            Mock.Get(this.httpContext)
+                .SetupGet(httpContext => httpContext.Items)
+                .Returns(() => new Dictionary<object, object>());
+
             Mock.Get(this.writerFactory)
                 .Setup(writerFactory => writerFactory.CreateWriter(It.IsAny<Stream>(), It.IsAny<Encoding>()))
                 .Returns(new StringWriter(this.body));
@@ -52,7 +61,12 @@ namespace PartialResponse.AspNetCore.Mvc.Formatters.Json.Tests
                 .SetupGet(options => options.Value)
                 .Returns(this.partialJsonOptions);
 
-            this.executor = new PartialJsonResultExecutor(this.writerFactory, this.logger, this.options, Mock.Of<ArrayPool<char>>());
+            Mock.Get(this.httpContextAccessor)
+                .SetupGet(httpContextAccessor => httpContextAccessor.HttpContext)
+                .Returns(this.httpContext);
+
+            this.mvcPartialJsonFields = new MvcPartialJsonFields(this.httpContextAccessor, this.loggerMvcPartialJsonFields);
+            this.executor = new PartialJsonResultExecutor(this.writerFactory, this.logger, this.options, Mock.Of<ArrayPool<char>>(), this.mvcPartialJsonFields);
             this.actionContext = new ActionContext() { HttpContext = this.httpContext };
         }
 

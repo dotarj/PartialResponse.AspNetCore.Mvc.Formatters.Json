@@ -3,7 +3,7 @@
   <PropertyGroup>
     <DebugType Condition="$(codecov) == 'true'">full</DebugType>
     <IsPackable>false</IsPackable>
-    <TargetFramework>net471</TargetFramework>
+    <TargetFramework>netcoreapp2.0</TargetFramework>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
   </PropertyGroup>
 
