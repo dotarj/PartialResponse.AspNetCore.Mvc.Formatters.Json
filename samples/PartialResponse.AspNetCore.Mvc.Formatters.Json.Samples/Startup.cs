@@ -2,6 +2,7 @@
 
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.Formatters;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -21,7 +22,13 @@ namespace PartialResponse.AspNetCore.Mvc.Formatters.Json.Samples
 
         public void ConfigureServices(IServiceCollection services)
         {
-            services.Configure<MvcPartialJsonOptions>(options => options.IgnoreCase = true);
+            services.Configure<MvcPartialJsonOptions>(options =>
+            {
+                options.IgnoreCase = true;
+                options.IgnoreParseErrors = true;
+            });
+
+            services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
 
             services
                 .AddMvc(options => options.OutputFormatters.RemoveType<JsonOutputFormatter>())
