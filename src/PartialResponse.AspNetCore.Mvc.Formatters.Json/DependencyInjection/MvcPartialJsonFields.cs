@@ -2,7 +2,10 @@
 
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
+using PartialResponse.AspNetCore.Mvc;
 using PartialResponse.AspNetCore.Mvc.Formatters.Json;
+using PartialResponse.Core;
 
 namespace PartialResponse.Extensions.DependencyInjection
 {
@@ -21,10 +24,12 @@ namespace PartialResponse.Extensions.DependencyInjection
         /// </summary>
         /// <param name="httpContextAccessor">The <see cref="IHttpContextAccessor"/></param>
         /// <param name="logger">The <see cref="ILogger{MvcPartialJsonFields}"/></param>
-        public MvcPartialJsonFields(IHttpContextAccessor httpContextAccessor, ILogger<MvcPartialJsonFields> logger)
+        /// <param name="options">The <see cref="IOptions{MvcPartialJsonOptions}"/></param>
+        public MvcPartialJsonFields(IHttpContextAccessor httpContextAccessor, ILogger<MvcPartialJsonFields> logger, IOptions<MvcPartialJsonOptions> options)
         {
             this.HttpContextAccessor = httpContextAccessor;
             this.Logger = logger;
+            this.Options = options;
         }
 
         /// <summary>
@@ -38,31 +43,38 @@ namespace PartialResponse.Extensions.DependencyInjection
         protected ILogger<MvcPartialJsonFields> Logger { get; }
 
         /// <summary>
+        /// Gets <see cref="IOptions{MvcPartialJsonOptions}"/>
+        /// </summary>
+        protected IOptions<MvcPartialJsonOptions> Options { get; }
+
+        /// <summary>
         /// Gets the fields parsing results
         /// </summary>
         /// <returns>The fields parsing results</returns>
         public MvcPartialJsonFieldsResult GetFieldsResult()
         {
             MvcPartialJsonFieldsResult result = null;
+            var request = this.HttpContextAccessor.HttpContext.Request;
+
             if (!this.HttpContextAccessor.HttpContext.Items.ContainsKey(KeyContextItems))
             {
-                result = new MvcPartialJsonFieldsResult();
-                if (!this.HttpContextAccessor.HttpContext.Request.TryGetFields(out var fields))
+                result = new MvcPartialJsonFieldsResult
                 {
-                    result.IsPresent = true;
-                    result.IsError = true;
+                    IsPresent = request.Query.ContainsKey(this.Options.Value.FieldsParamName),
+                    IsError = false
+                };
+                if (result.IsPresent)
+                {
+                    result.IsError = !Fields.TryParse(request.Query[this.Options.Value.FieldsParamName][0], out var fields);
 
-                    this.Logger.LogWarning("Failed to parse fields for partial response");
-                }
-                else
-                {
-                    if (fields != null)
+                    if (!result.IsError)
                     {
-                        result.Fields = fields.Value;
+                        result.Fields = fields;
                     }
-
-                    result.IsPresent = fields != null;
-                    result.IsError = false;
+                    else
+                    {
+                        this.Logger.LogWarning("Failed to parse fields for partial response");
+                    }
                 }
 
                 this.HttpContextAccessor.HttpContext.Items.Add(KeyContextItems, result);

@@ -21,6 +21,11 @@ namespace PartialResponse.AspNetCore.Mvc
         public bool IgnoreParseErrors { get; set; }
 
         /// <summary>
+        /// Gets or sets the get parameter used to parse the fields
+        /// </summary>
+        public string FieldsParamName { get; set; } = "fields";
+
+        /// <summary>
         /// Gets the <see cref="JsonSerializerSettings"/> that are used by this application.
         /// </summary>
         public JsonSerializerSettings SerializerSettings { get; } = JsonSerializerSettingsProvider.CreateSerializerSettings();
