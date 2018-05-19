@@ -94,7 +94,7 @@ namespace PartialResponse.AspNetCore.Mvc.Formatters
             if (!this.ShouldBypassPartialResponse(context.HttpContext))
             {
                 var fieldsResult = mvcPartialJsonFields.GetFieldsResult();
-                if (fieldsResult.IsPresent && !fieldsResult.IsError)
+                if (fieldsResult.IsValid)
                 {
                     fields = fieldsResult.Fields;
                 }

@@ -23,5 +23,10 @@ namespace PartialResponse.AspNetCore.Mvc.Formatters.Json
         /// Gets or sets a value indicating whether an error while parsing the fields.
         /// </summary>
         public bool IsError { get; set; }
+
+        /// <summary>
+        /// Gets a value indicating whether the <see cref="Field"/> property holds a valid object.
+        /// </summary>
+        public bool IsValid => this.IsPresent && !this.IsError;
     }
 }

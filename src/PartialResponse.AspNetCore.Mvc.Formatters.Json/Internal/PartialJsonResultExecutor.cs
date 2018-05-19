@@ -142,7 +142,7 @@ namespace PartialResponse.AspNetCore.Mvc.Formatters.Json.Internal
 
                     var jsonSerializer = JsonSerializer.Create(serializerSettings);
 
-                    if (fields.IsPresent && !fields.IsError)
+                    if (fields.IsValid)
                     {
                         jsonSerializer.Serialize(jsonWriter, result.Value, path => fields.Fields.Matches(path, this.Options.IgnoreCase));
                     }
