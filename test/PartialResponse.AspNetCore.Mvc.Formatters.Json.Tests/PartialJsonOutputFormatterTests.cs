@@ -75,7 +75,7 @@ namespace PartialResponse.AspNetCore.Mvc.Formatters.Json.Tests
                 .SetupGet(httpContextAccessor => httpContextAccessor.HttpContext)
                 .Returns(this.httpContext);
 
-            this.mvcPartialJsonFields = new MvcPartialJsonFields(this.httpContextAccessor, this.loggerMvcPartialJsonFields);
+            this.mvcPartialJsonFields = new MvcPartialJsonFields(this.httpContextAccessor, this.loggerMvcPartialJsonFields, this.options);
         }
 
         [Fact]

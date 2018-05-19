@@ -65,7 +65,7 @@ namespace PartialResponse.AspNetCore.Mvc.Formatters.Json.Tests
                 .SetupGet(httpContextAccessor => httpContextAccessor.HttpContext)
                 .Returns(this.httpContext);
 
-            this.mvcPartialJsonFields = new MvcPartialJsonFields(this.httpContextAccessor, this.loggerMvcPartialJsonFields);
+            this.mvcPartialJsonFields = new MvcPartialJsonFields(this.httpContextAccessor, this.loggerMvcPartialJsonFields, this.options);
             this.executor = new PartialJsonResultExecutor(this.writerFactory, this.logger, this.options, Mock.Of<ArrayPool<char>>(), this.mvcPartialJsonFields);
             this.actionContext = new ActionContext() { HttpContext = this.httpContext };
         }
