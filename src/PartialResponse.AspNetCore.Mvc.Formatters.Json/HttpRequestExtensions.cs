@@ -2,7 +2,6 @@
 
 using System;
 using PartialResponse.AspNetCore.Mvc.Formatters;
-using PartialResponse.Core;
 
 namespace Microsoft.AspNetCore.Http
 {
@@ -19,7 +18,7 @@ namespace Microsoft.AspNetCore.Http
         {
             if (request == null)
             {
-                throw new ArgumentNullException("request");
+                throw new ArgumentNullException(nameof(request));
             }
 
             request.HttpContext.Items[PartialJsonOutputFormatter.BypassPartialResponseKey] = null;
