@@ -63,7 +63,7 @@ namespace PartialResponse.AspNetCore.Mvc.Formatters.Json.Internal
         /// <param name="options">The MVC options.</param>
         public void Configure(MvcOptions options)
         {
-            options.OutputFormatters.Add(new PartialJsonOutputFormatter(this.partialJsonOptions.SerializerSettings, this.charPool, this.partialJsonOptions.IgnoreCase));
+            options.OutputFormatters.Add(new PartialJsonOutputFormatter(this.partialJsonOptions.SerializerSettings, this.charPool, this.partialJsonOptions));
             options.FormatterMappings.SetMediaTypeMappingForFormat("json", MediaTypeHeaderValue.Parse("application/json"));
             options.ModelMetadataDetailsProviders.Add(new SuppressChildValidationMetadataProvider(typeof(JToken)));
         }

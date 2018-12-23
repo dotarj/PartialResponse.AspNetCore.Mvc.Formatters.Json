@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Arjen Post. See LICENSE and NOTICE in the project root for license information.
 
+using System.Collections.Generic;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -50,22 +51,35 @@ namespace PartialResponse.Extensions.DependencyInjection
         /// <summary>
         /// Gets the fields parsing results
         /// </summary>
+        /// <param name="paramName">The query parameter to parse</param>
         /// <returns>The fields parsing results</returns>
-        public MvcPartialJsonFieldsResult GetFieldsResult()
+        public MvcPartialJsonFieldsResult GetFieldsResult(string paramName)
         {
             MvcPartialJsonFieldsResult result = null;
             var request = this.HttpContextAccessor.HttpContext.Request;
 
+            IDictionary<string, MvcPartialJsonFieldsResult> cache;
+
             if (!this.HttpContextAccessor.HttpContext.Items.ContainsKey(KeyContextItems))
+            {
+                cache = new Dictionary<string, MvcPartialJsonFieldsResult>();
+                this.HttpContextAccessor.HttpContext.Items.Add(KeyContextItems, cache);
+            }
+            else
+            {
+                cache = (IDictionary<string, MvcPartialJsonFieldsResult>)this.HttpContextAccessor.HttpContext.Items[KeyContextItems];
+            }
+
+            if (!cache.ContainsKey(paramName))
             {
                 result = new MvcPartialJsonFieldsResult
                 {
-                    IsPresent = request.Query.ContainsKey(this.Options.Value.FieldsParamName),
+                    IsPresent = request.Query.ContainsKey(paramName),
                     IsError = false
                 };
                 if (result.IsPresent)
                 {
-                    result.IsError = !Fields.TryParse(request.Query[this.Options.Value.FieldsParamName][0], out var fields);
+                    result.IsError = !Fields.TryParse(request.Query[paramName][0], out var fields);
 
                     if (!result.IsError)
                     {
@@ -73,15 +87,15 @@ namespace PartialResponse.Extensions.DependencyInjection
                     }
                     else
                     {
-                        this.Logger.LogWarning("Failed to parse fields for partial response");
+                        this.Logger.LogWarning($"Failed to parse fields for {paramName}");
                     }
                 }
 
-                this.HttpContextAccessor.HttpContext.Items.Add(KeyContextItems, result);
+                cache.Add(paramName, result);
             }
             else
             {
-                result = (MvcPartialJsonFieldsResult)this.HttpContextAccessor.HttpContext.Items[KeyContextItems];
+                result = cache[paramName];
             }
 
             return result;

@@ -24,7 +24,7 @@ namespace PartialResponse.AspNetCore.Mvc.Formatters
         internal const string BypassPartialResponseKey = "BypassPartialResponse";
 
         private readonly IArrayPool<char> charPool;
-        private readonly bool ignoreCase;
+        private readonly MvcPartialJsonOptions options;
 
         // Perf: JsonSerializers are relatively expensive to create, and are thread safe. We cache
         // the serializer and invalidate it when the settings change.
@@ -39,8 +39,8 @@ namespace PartialResponse.AspNetCore.Mvc.Formatters
         /// <see cref="JsonSerializerSettingsProvider.CreateSerializerSettings"/> initially returned.
         /// </param>
         /// <param name="charPool">The <see cref="ArrayPool{Char}"/>.</param>
-        /// <param name="ignoreCase">A value that indicates whether partial response allows case-insensitive matching.</param>
-        public PartialJsonOutputFormatter(JsonSerializerSettings serializerSettings, ArrayPool<char> charPool, bool ignoreCase)
+        /// <param name="options">MvcPartialJson options</param>
+        public PartialJsonOutputFormatter(JsonSerializerSettings serializerSettings, ArrayPool<char> charPool, MvcPartialJsonOptions options)
         {
             if (serializerSettings == null)
             {
@@ -52,9 +52,14 @@ namespace PartialResponse.AspNetCore.Mvc.Formatters
                 throw new ArgumentNullException(nameof(charPool));
             }
 
+            if (options == null)
+            {
+                throw new ArgumentNullException(nameof(options));
+            }
+
             this.SerializerSettings = serializerSettings;
             this.charPool = new JsonArrayPool<char>(charPool);
-            this.ignoreCase = ignoreCase;
+            this.options = options;
 
             this.SupportedEncodings.Add(Encoding.UTF8);
             this.SupportedEncodings.Add(Encoding.Unicode);
@@ -93,7 +98,7 @@ namespace PartialResponse.AspNetCore.Mvc.Formatters
 
             if (!this.ShouldBypassPartialResponse(context.HttpContext))
             {
-                var fieldsResult = mvcPartialJsonFields.GetFieldsResult();
+                var fieldsResult = mvcPartialJsonFields.GetFieldsResult(this.options.FieldsParamName);
                 if (fieldsResult.IsValid)
                 {
                     fields = fieldsResult.Fields;
@@ -167,7 +172,7 @@ namespace PartialResponse.AspNetCore.Mvc.Formatters
 
                 if (fields.HasValue)
                 {
-                    jsonSerializer.Serialize(jsonWriter, value, path => fields.Value.Matches(path, this.ignoreCase));
+                    jsonSerializer.Serialize(jsonWriter, value, path => fields.Value.Matches(path, this.options.IgnoreCase));
                 }
                 else
                 {

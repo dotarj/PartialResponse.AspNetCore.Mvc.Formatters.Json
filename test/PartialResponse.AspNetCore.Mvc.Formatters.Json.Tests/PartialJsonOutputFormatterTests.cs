@@ -95,9 +95,10 @@ namespace PartialResponse.AspNetCore.Mvc.Formatters.Json.Tests
                 .Returns("foo/");
 
             this.partialJsonOptions.IgnoreParseErrors = false;
+            this.partialJsonOptions.IgnoreCase = false;
 
             var writeContext = new OutputFormatterWriteContext(this.httpContext, (stream, encoding) => new StringWriter(this.body), typeof(object), new { });
-            var formatter = new PartialJsonOutputFormatter(new JsonSerializerSettings(), Mock.Of<ArrayPool<char>>(), false);
+            var formatter = new PartialJsonOutputFormatter(new JsonSerializerSettings(), Mock.Of<ArrayPool<char>>(), this.partialJsonOptions);
 
             // Act
             await formatter.WriteResponseBodyAsync(writeContext, Encoding.UTF8);
@@ -124,9 +125,10 @@ namespace PartialResponse.AspNetCore.Mvc.Formatters.Json.Tests
                 .Returns("foo/");
 
             this.partialJsonOptions.IgnoreParseErrors = true;
+            this.partialJsonOptions.IgnoreCase = false;
 
             var writeContext = new OutputFormatterWriteContext(this.httpContext, (stream, encoding) => new StringWriter(this.body), typeof(object), new { });
-            var formatter = new PartialJsonOutputFormatter(new JsonSerializerSettings(), Mock.Of<ArrayPool<char>>(), false);
+            var formatter = new PartialJsonOutputFormatter(new JsonSerializerSettings(), Mock.Of<ArrayPool<char>>(), this.partialJsonOptions);
 
             // Act
             await formatter.WriteResponseBodyAsync(writeContext, Encoding.UTF8);
@@ -151,8 +153,10 @@ namespace PartialResponse.AspNetCore.Mvc.Formatters.Json.Tests
                 .SetupGet(queryCollection => queryCollection["fields"])
                 .Returns("foo/");
 
+            this.partialJsonOptions.IgnoreCase = false;
+
             var writeContext = new OutputFormatterWriteContext(this.httpContext, (stream, encoding) => new StringWriter(this.body), typeof(object), new { });
-            var formatter = new PartialJsonOutputFormatter(new JsonSerializerSettings(), Mock.Of<ArrayPool<char>>(), false);
+            var formatter = new PartialJsonOutputFormatter(new JsonSerializerSettings(), Mock.Of<ArrayPool<char>>(), this.partialJsonOptions);
 
             // Act
             await formatter.WriteResponseBodyAsync(writeContext, Encoding.UTF8);
@@ -173,10 +177,12 @@ namespace PartialResponse.AspNetCore.Mvc.Formatters.Json.Tests
                 .Setup(queryCollection => queryCollection.ContainsKey("fields"))
                 .Returns(false);
 
+            this.partialJsonOptions.IgnoreCase = false;
+
             var value = new { foo = "bar" };
 
             var writeContext = new OutputFormatterWriteContext(this.httpContext, (stream, encoding) => new StringWriter(this.body), typeof(object), value);
-            var formatter = new PartialJsonOutputFormatter(new JsonSerializerSettings(), Mock.Of<ArrayPool<char>>(), false);
+            var formatter = new PartialJsonOutputFormatter(new JsonSerializerSettings(), Mock.Of<ArrayPool<char>>(), this.partialJsonOptions);
 
             // Act
             await formatter.WriteResponseBodyAsync(writeContext, Encoding.UTF8);
@@ -201,10 +207,12 @@ namespace PartialResponse.AspNetCore.Mvc.Formatters.Json.Tests
                 .SetupGet(queryCollection => queryCollection["fields"])
                 .Returns("foo");
 
+            this.partialJsonOptions.IgnoreCase = false;
+
             var value = new { foo = "bar", baz = "qux" };
 
             var writeContext = new OutputFormatterWriteContext(this.httpContext, (stream, encoding) => new StringWriter(this.body), typeof(object), value);
-            var formatter = new PartialJsonOutputFormatter(new JsonSerializerSettings(), Mock.Of<ArrayPool<char>>(), false);
+            var formatter = new PartialJsonOutputFormatter(new JsonSerializerSettings(), Mock.Of<ArrayPool<char>>(), this.partialJsonOptions);
 
             // Act
             await formatter.WriteResponseBodyAsync(writeContext, Encoding.UTF8);
@@ -229,10 +237,12 @@ namespace PartialResponse.AspNetCore.Mvc.Formatters.Json.Tests
                 .SetupGet(queryCollection => queryCollection["fields"])
                 .Returns("FOO");
 
+            this.partialJsonOptions.IgnoreCase = true;
+
             var value = new { foo = "bar" };
 
             var writeContext = new OutputFormatterWriteContext(this.httpContext, (stream, encoding) => new StringWriter(this.body), typeof(object), value);
-            var formatter = new PartialJsonOutputFormatter(new JsonSerializerSettings(), Mock.Of<ArrayPool<char>>(), true);
+            var formatter = new PartialJsonOutputFormatter(new JsonSerializerSettings(), Mock.Of<ArrayPool<char>>(), this.partialJsonOptions);
 
             // Act
             await formatter.WriteResponseBodyAsync(writeContext, Encoding.UTF8);
@@ -257,10 +267,12 @@ namespace PartialResponse.AspNetCore.Mvc.Formatters.Json.Tests
                 .SetupGet(queryCollection => queryCollection["fields"])
                 .Returns("FOO");
 
+            this.partialJsonOptions.IgnoreCase = false;
+
             var value = new { foo = "bar" };
 
             var writeContext = new OutputFormatterWriteContext(this.httpContext, (stream, encoding) => new StringWriter(this.body), typeof(object), value);
-            var formatter = new PartialJsonOutputFormatter(new JsonSerializerSettings(), Mock.Of<ArrayPool<char>>(), false);
+            var formatter = new PartialJsonOutputFormatter(new JsonSerializerSettings(), Mock.Of<ArrayPool<char>>(), this.partialJsonOptions);
 
             // Act
             await formatter.WriteResponseBodyAsync(writeContext, Encoding.UTF8);
@@ -286,11 +298,12 @@ namespace PartialResponse.AspNetCore.Mvc.Formatters.Json.Tests
                 .Returns(string.Empty);
 
             this.httpRequest.BypassPartialResponse();
+            this.partialJsonOptions.IgnoreCase = false;
 
             var value = new { foo = "bar" };
 
             var writeContext = new OutputFormatterWriteContext(this.httpContext, (stream, encoding) => new StringWriter(this.body), typeof(object), value);
-            var formatter = new PartialJsonOutputFormatter(new JsonSerializerSettings(), Mock.Of<ArrayPool<char>>(), false);
+            var formatter = new PartialJsonOutputFormatter(new JsonSerializerSettings(), Mock.Of<ArrayPool<char>>(), this.partialJsonOptions);
 
             // Act
             await formatter.WriteResponseBodyAsync(writeContext, Encoding.UTF8);
@@ -315,10 +328,12 @@ namespace PartialResponse.AspNetCore.Mvc.Formatters.Json.Tests
                 .SetupGet(queryCollection => queryCollection["fields"])
                 .Returns(string.Empty);
 
+            this.partialJsonOptions.IgnoreCase = false;
+
             var value = new { foo = "bar" };
 
             var writeContext = new OutputFormatterWriteContext(this.httpContext, (stream, encoding) => new StringWriter(this.body), typeof(object), value);
-            var formatter = new PartialJsonOutputFormatter(new JsonSerializerSettings(), Mock.Of<ArrayPool<char>>(), false);
+            var formatter = new PartialJsonOutputFormatter(new JsonSerializerSettings(), Mock.Of<ArrayPool<char>>(), this.partialJsonOptions);
 
             // Act
             await formatter.WriteResponseBodyAsync(writeContext, Encoding.UTF8);

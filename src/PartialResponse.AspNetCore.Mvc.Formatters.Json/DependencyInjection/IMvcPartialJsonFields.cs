@@ -12,7 +12,8 @@ namespace PartialResponse.Extensions.DependencyInjection
         /// <summary>
         /// Gets the fields parsing results
         /// </summary>
+        /// <param name="paramName">The query parameter to parse</param>
         /// <returns>The fields parsing results</returns>
-        MvcPartialJsonFieldsResult GetFieldsResult();
+        MvcPartialJsonFieldsResult GetFieldsResult(string paramName);
     }
 }

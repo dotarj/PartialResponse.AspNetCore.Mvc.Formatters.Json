@@ -108,7 +108,7 @@ namespace PartialResponse.AspNetCore.Mvc.Formatters.Json.Internal
 
             var response = context.HttpContext.Response;
 
-            var fields = this.MvcPartialJsonFields.GetFieldsResult();
+            var fields = this.MvcPartialJsonFields.GetFieldsResult(this.Options.FieldsParamName);
 
             if (fields.IsError && !this.Options.IgnoreParseErrors)
             {

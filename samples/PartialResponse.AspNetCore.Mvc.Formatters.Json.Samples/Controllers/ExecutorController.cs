@@ -2,6 +2,7 @@
 
 using System.Collections.Generic;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Options;
 using PartialResponse.Extensions.DependencyInjection;
 
 namespace PartialResponse.AspNetCore.Mvc.Formatters.Json.Samples.Controllers
@@ -22,13 +23,13 @@ namespace PartialResponse.AspNetCore.Mvc.Formatters.Json.Samples.Controllers
         /// </summary>
         protected IMvcPartialJsonFields MvcPartialJsonFields { get; }
 
-        public IActionResult Index()
+        public IActionResult Index([FromServices]IOptions<MvcPartialJsonOptions> options)
         {
             // This one computes the fields
-            var fields1 = this.MvcPartialJsonFields.GetFieldsResult();
+            var fields1 = this.MvcPartialJsonFields.GetFieldsResult(options.Value.FieldsParamName);
 
             // This one gets the fields from cache
-            var fields2 = this.MvcPartialJsonFields.GetFieldsResult();
+            var fields2 = this.MvcPartialJsonFields.GetFieldsResult(options.Value.FieldsParamName);
             var response = new List<dynamic>()
             {
                 new
