@@ -12,7 +12,7 @@ namespace PartialResponse.AspNetCore.Mvc.Formatters.Json.Samples.Controllers
         /// Initializes a new instance of the <see cref="ExecutorController"/> class.
         /// </summary>
         /// <param name="mvcPartialJsonFields"></param>
-        public ExecutorController(MvcPartialJsonFields mvcPartialJsonFields)
+        public ExecutorController(IMvcPartialJsonFields mvcPartialJsonFields)
         {
             this.MvcPartialJsonFields = mvcPartialJsonFields;
         }
@@ -20,7 +20,7 @@ namespace PartialResponse.AspNetCore.Mvc.Formatters.Json.Samples.Controllers
         /// <summary>
         /// Gets the <see cref="MvcPartialJsonFields"/>
         /// </summary>
-        protected MvcPartialJsonFields MvcPartialJsonFields { get; }
+        protected IMvcPartialJsonFields MvcPartialJsonFields { get; }
 
         public IActionResult Index()
         {
@@ -69,7 +69,7 @@ namespace PartialResponse.AspNetCore.Mvc.Formatters.Json.Samples.Controllers
                         Baz = 5,
                         Qux = 6
                     },
-                    Fields = (MvcPartialJsonFields)null
+                    Fields = (object)null
                 }
             };
 

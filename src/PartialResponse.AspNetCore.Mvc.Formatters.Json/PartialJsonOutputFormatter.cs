@@ -86,7 +86,7 @@ namespace PartialResponse.AspNetCore.Mvc.Formatters
 
             var response = context.HttpContext.Response;
             var serviceProvider = context.HttpContext.RequestServices;
-            var mvcPartialJsonFields = serviceProvider.GetService<MvcPartialJsonFields>();
+            var mvcPartialJsonFields = serviceProvider.GetService<IMvcPartialJsonFields>();
             var mvcPartialJsonOptions = serviceProvider.GetService<IOptions<MvcPartialJsonOptions>>();
 
             Fields? fields = null;

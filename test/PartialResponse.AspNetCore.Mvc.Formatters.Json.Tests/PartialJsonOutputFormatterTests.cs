@@ -64,7 +64,7 @@ namespace PartialResponse.AspNetCore.Mvc.Formatters.Json.Tests
                 .Returns(this.partialJsonOptions);
 
             Mock.Get(this.serviceProvider)
-                .Setup(provider => provider.GetService(typeof(MvcPartialJsonFields)))
+                .Setup(provider => provider.GetService(typeof(IMvcPartialJsonFields)))
                 .Returns(() => this.mvcPartialJsonFields);
 
             Mock.Get(this.serviceProvider)

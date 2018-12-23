@@ -34,7 +34,7 @@ namespace PartialResponse.AspNetCore.Mvc.Formatters.Json.Internal
         /// <param name="options">The <see cref="IOptions{MvcPartialJsonOptions}"/>.</param>
         /// <param name="charPool">The <see cref="ArrayPool{Char}"/> for creating <see cref="T:char[]"/> buffers.</param>
         /// <param name="mvcPartialJsonFields">The <see cref="MvcPartialJsonFields"/>.</param>
-        public PartialJsonResultExecutor(IHttpResponseStreamWriterFactory writerFactory, ILogger<PartialJsonResultExecutor> logger, IOptions<MvcPartialJsonOptions> options, ArrayPool<char> charPool, MvcPartialJsonFields mvcPartialJsonFields)
+        public PartialJsonResultExecutor(IHttpResponseStreamWriterFactory writerFactory, ILogger<PartialJsonResultExecutor> logger, IOptions<MvcPartialJsonOptions> options, ArrayPool<char> charPool, IMvcPartialJsonFields mvcPartialJsonFields)
         {
             if (writerFactory == null)
             {
@@ -86,7 +86,7 @@ namespace PartialResponse.AspNetCore.Mvc.Formatters.Json.Internal
         /// <summary>
         /// Gets the <see cref="MvcPartialJsonFields"/>
         /// </summary>
-        protected MvcPartialJsonFields MvcPartialJsonFields { get; }
+        protected IMvcPartialJsonFields MvcPartialJsonFields { get; }
 
         /// <summary>
         /// Executes the <see cref="PartialJsonResult"/> and writes the response.

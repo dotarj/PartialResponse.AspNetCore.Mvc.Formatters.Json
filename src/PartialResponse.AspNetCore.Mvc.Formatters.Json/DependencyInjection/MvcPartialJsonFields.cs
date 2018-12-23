@@ -12,7 +12,7 @@ namespace PartialResponse.Extensions.DependencyInjection
     /// <summary>
     /// Class to access the fields via dependency injection
     /// </summary>
-    public class MvcPartialJsonFields
+    public class MvcPartialJsonFields : IMvcPartialJsonFields
     {
         /// <summary>
         /// Key used to store fields object
