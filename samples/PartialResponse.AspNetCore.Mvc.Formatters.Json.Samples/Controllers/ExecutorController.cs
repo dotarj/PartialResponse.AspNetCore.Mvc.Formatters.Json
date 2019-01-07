@@ -12,24 +12,24 @@ namespace PartialResponse.AspNetCore.Mvc.Formatters.Json.Samples.Controllers
         /// <summary>
         /// Initializes a new instance of the <see cref="ExecutorController"/> class.
         /// </summary>
-        /// <param name="mvcPartialJsonFields"></param>
-        public ExecutorController(IMvcPartialJsonFields mvcPartialJsonFields)
+        /// <param name="fieldsParser">The fields parser.</param>
+        public ExecutorController(IFieldsParser fieldsParser)
         {
-            this.MvcPartialJsonFields = mvcPartialJsonFields;
+            this.FieldsParser = fieldsParser;
         }
 
         /// <summary>
-        /// Gets the <see cref="MvcPartialJsonFields"/>
+        /// Gets the <see cref="FieldsParser"/>
         /// </summary>
-        protected IMvcPartialJsonFields MvcPartialJsonFields { get; }
+        protected IFieldsParser FieldsParser { get; }
 
         public IActionResult Index([FromServices]IOptions<MvcPartialJsonOptions> options)
         {
             // This one computes the fields
-            var fields1 = this.MvcPartialJsonFields.GetFieldsResult(options.Value.FieldsParamName);
+            var fields1 = this.FieldsParser.Parse(this.Request);
 
             // This one gets the fields from cache
-            var fields2 = this.MvcPartialJsonFields.GetFieldsResult(options.Value.FieldsParamName);
+            var fields2 = this.FieldsParser.Parse(this.Request);
             var response = new List<dynamic>()
             {
                 new
@@ -42,9 +42,9 @@ namespace PartialResponse.AspNetCore.Mvc.Formatters.Json.Samples.Controllers
                     },
                     Fields = new
                     {
-                        Fields = fields1.IsPresent ? string.Join(",", fields1.Fields.Values) : null,
-                        fields1.IsError,
-                        fields1.IsPresent
+                        Fields = fields1.IsFieldsSet ? string.Join(",", fields1.Fields.Values) : null,
+                        fields1.HasError,
+                        fields1.IsFieldsSet
                     }
                 },
                 new
@@ -57,9 +57,9 @@ namespace PartialResponse.AspNetCore.Mvc.Formatters.Json.Samples.Controllers
                     },
                     Fields = new
                     {
-                        Fields = fields2.IsPresent ? string.Join(",", fields2.Fields.Values) : null,
-                        fields2.IsError,
-                        fields2.IsPresent
+                        Fields = fields2.IsFieldsSet ? string.Join(",", fields2.Fields.Values) : null,
+                        fields2.HasError,
+                        fields2.IsFieldsSet
                     }
                 },
                 new

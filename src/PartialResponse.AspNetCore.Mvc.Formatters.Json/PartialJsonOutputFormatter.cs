@@ -91,20 +91,20 @@ namespace PartialResponse.AspNetCore.Mvc.Formatters
 
             var response = context.HttpContext.Response;
             var serviceProvider = context.HttpContext.RequestServices;
-            var mvcPartialJsonFields = serviceProvider.GetService<IMvcPartialJsonFields>();
+            var mvcPartialJsonFields = serviceProvider.GetService<IFieldsParser>();
             var mvcPartialJsonOptions = serviceProvider.GetService<IOptions<MvcPartialJsonOptions>>();
 
             Fields? fields = null;
 
             if (!this.ShouldBypassPartialResponse(context.HttpContext))
             {
-                var fieldsResult = mvcPartialJsonFields.GetFieldsResult(this.options.FieldsParamName);
-                if (fieldsResult.IsValid)
+                var fieldsParserResult = mvcPartialJsonFields.Parse(context.HttpContext.Request);
+                if (fieldsParserResult.IsFieldsSet && !fieldsParserResult.HasError)
                 {
-                    fields = fieldsResult.Fields;
+                    fields = fieldsParserResult.Fields;
                 }
 
-                if (fieldsResult.IsError && !mvcPartialJsonOptions.Value.IgnoreParseErrors)
+                if (fieldsParserResult.HasError && !mvcPartialJsonOptions.Value.IgnoreParseErrors)
                 {
                     response.StatusCode = 400;
 

@@ -87,7 +87,7 @@ namespace PartialResponse.Extensions.DependencyInjection
         {
             services.TryAddEnumerable(ServiceDescriptor.Transient<IConfigureOptions<MvcOptions>, MvcPartialJsonMvcOptionsSetup>());
             services.TryAddSingleton<PartialJsonResultExecutor>();
-            services.TryAddSingleton<IMvcPartialJsonFields, MvcPartialJsonFields>();
+            services.TryAddSingleton<IFieldsParser, FieldsParser>();
         }
     }
 }

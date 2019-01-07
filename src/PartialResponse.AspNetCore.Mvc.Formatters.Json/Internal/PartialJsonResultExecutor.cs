@@ -33,8 +33,8 @@ namespace PartialResponse.AspNetCore.Mvc.Formatters.Json.Internal
         /// <param name="logger">The <see cref="ILogger{PartialJsonResultExecutor}"/>.</param>
         /// <param name="options">The <see cref="IOptions{MvcPartialJsonOptions}"/>.</param>
         /// <param name="charPool">The <see cref="ArrayPool{Char}"/> for creating <see cref="T:char[]"/> buffers.</param>
-        /// <param name="mvcPartialJsonFields">The <see cref="MvcPartialJsonFields"/>.</param>
-        public PartialJsonResultExecutor(IHttpResponseStreamWriterFactory writerFactory, ILogger<PartialJsonResultExecutor> logger, IOptions<MvcPartialJsonOptions> options, ArrayPool<char> charPool, IMvcPartialJsonFields mvcPartialJsonFields)
+        /// <param name="fieldsParser">The <see cref="FieldsParser"/>.</param>
+        public PartialJsonResultExecutor(IHttpResponseStreamWriterFactory writerFactory, ILogger<PartialJsonResultExecutor> logger, IOptions<MvcPartialJsonOptions> options, ArrayPool<char> charPool, IFieldsParser fieldsParser)
         {
             if (writerFactory == null)
             {
@@ -56,16 +56,16 @@ namespace PartialResponse.AspNetCore.Mvc.Formatters.Json.Internal
                 throw new ArgumentNullException(nameof(charPool));
             }
 
-            if (mvcPartialJsonFields == null)
+            if (fieldsParser == null)
             {
-                throw new ArgumentNullException(nameof(mvcPartialJsonFields));
+                throw new ArgumentNullException(nameof(fieldsParser));
             }
 
             this.WriterFactory = writerFactory;
             this.Logger = logger;
             this.Options = options.Value;
             this.charPool = new JsonArrayPool<char>(charPool);
-            this.MvcPartialJsonFields = mvcPartialJsonFields;
+            this.FieldsParser = fieldsParser;
         }
 
         /// <summary>
@@ -84,9 +84,9 @@ namespace PartialResponse.AspNetCore.Mvc.Formatters.Json.Internal
         protected IHttpResponseStreamWriterFactory WriterFactory { get; }
 
         /// <summary>
-        /// Gets the <see cref="MvcPartialJsonFields"/>
+        /// Gets the <see cref="FieldsParser"/>
         /// </summary>
-        protected IMvcPartialJsonFields MvcPartialJsonFields { get; }
+        protected IFieldsParser FieldsParser { get; }
 
         /// <summary>
         /// Executes the <see cref="PartialJsonResult"/> and writes the response.
@@ -108,9 +108,9 @@ namespace PartialResponse.AspNetCore.Mvc.Formatters.Json.Internal
 
             var response = context.HttpContext.Response;
 
-            var fields = this.MvcPartialJsonFields.GetFieldsResult(this.Options.FieldsParamName);
+            var fieldsParserResult = this.FieldsParser.Parse(context.HttpContext.Request);
 
-            if (fields.IsError && !this.Options.IgnoreParseErrors)
+            if (fieldsParserResult.HasError && !this.Options.IgnoreParseErrors)
             {
                 response.StatusCode = 400;
 
@@ -142,9 +142,9 @@ namespace PartialResponse.AspNetCore.Mvc.Formatters.Json.Internal
 
                     var jsonSerializer = JsonSerializer.Create(serializerSettings);
 
-                    if (fields.IsValid)
+                    if (fieldsParserResult.IsFieldsSet && !fieldsParserResult.HasError)
                     {
-                        jsonSerializer.Serialize(jsonWriter, result.Value, path => fields.Fields.Matches(path, this.Options.IgnoreCase));
+                        jsonSerializer.Serialize(jsonWriter, result.Value, path => fieldsParserResult.Fields.Matches(path, this.Options.IgnoreCase));
                     }
                     else
                     {
