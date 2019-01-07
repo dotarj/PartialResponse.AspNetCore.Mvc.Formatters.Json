@@ -41,6 +41,10 @@ namespace PartialResponse.AspNetCore.Mvc.Formatters.Json.Tests
                 .SetupGet(httpRequest => httpRequest.Query)
                 .Returns(this.queryCollection);
 
+            Mock.Get(this.httpRequest)
+                .SetupGet(httpRequest => httpRequest.HttpContext)
+                .Returns(this.httpContext);
+
             Mock.Get(this.httpContext)
                 .SetupGet(httpContext => httpContext.Request)
                 .Returns(this.httpRequest);
