@@ -1,18 +1,16 @@
 ﻿// Copyright (c) Arjen Post. See LICENSE and NOTICE in the project root for license information.
-
 using System;
 using Microsoft.AspNetCore.Http;
-using PartialResponse.AspNetCore.Mvc.Formatters.Json;
 using PartialResponse.Core;
 
-namespace PartialResponse.Extensions.DependencyInjection
+namespace PartialResponse.AspNetCore.Mvc.Formatters.Json
 {
     /// <summary>
     /// Parses the fields from the request.
     /// </summary>
     public class FieldsParser : IFieldsParser
     {
-        private const string KeyContextItems = nameof(FieldsParserResult);
+        private const string FieldsCacheKey = "FieldsCache";
         private const string FieldsParameterName = "fields";
 
         /// <summary>
@@ -31,13 +29,13 @@ namespace PartialResponse.Extensions.DependencyInjection
 
             var httpContext = request.HttpContext;
 
-            if (!httpContext.Items.ContainsKey(KeyContextItems))
+            if (!httpContext.Items.ContainsKey(FieldsCacheKey))
             {
-                httpContext.Items[KeyContextItems] = fieldsResult = this.ParseImpl(request);
+                httpContext.Items[FieldsCacheKey] = fieldsResult = this.ParseImpl(request);
             }
             else
             {
-                fieldsResult = (FieldsParserResult)httpContext.Items[KeyContextItems];
+                fieldsResult = (FieldsParserResult)httpContext.Items[FieldsCacheKey];
             }
 
             return fieldsResult;

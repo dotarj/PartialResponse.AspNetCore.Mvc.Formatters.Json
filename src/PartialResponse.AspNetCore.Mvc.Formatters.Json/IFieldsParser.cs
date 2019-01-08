@@ -1,9 +1,7 @@
 // Copyright (c) Arjen Post. See LICENSE and NOTICE in the project root for license information.
-
 using Microsoft.AspNetCore.Http;
-using PartialResponse.AspNetCore.Mvc.Formatters.Json;
 
-namespace PartialResponse.Extensions.DependencyInjection
+namespace PartialResponse.AspNetCore.Mvc.Formatters.Json
 {
     /// <summary>
     /// Parses the fields from the request.
