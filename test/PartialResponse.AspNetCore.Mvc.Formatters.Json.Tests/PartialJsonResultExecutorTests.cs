@@ -22,7 +22,7 @@ namespace PartialResponse.AspNetCore.Mvc.Formatters.Json.Tests
     {
         private readonly PartialJsonResultExecutor executor;
         private readonly ActionContext actionContext;
-        private readonly FieldsParser mvcPartialJsonFields;
+        private readonly IFieldsParser fieldsParser = Mock.Of<IFieldsParser>();
         private readonly IHttpResponseStreamWriterFactory writerFactory = Mock.Of<IHttpResponseStreamWriterFactory>();
         private readonly ILogger<PartialJsonResultExecutor> logger = Mock.Of<ILogger<PartialJsonResultExecutor>>();
         private readonly ILogger<FieldsParser> loggerMvcPartialJsonFields = Mock.Of<ILogger<FieldsParser>>();
@@ -69,8 +69,7 @@ namespace PartialResponse.AspNetCore.Mvc.Formatters.Json.Tests
                 .SetupGet(httpContextAccessor => httpContextAccessor.HttpContext)
                 .Returns(this.httpContext);
 
-            this.mvcPartialJsonFields = new FieldsParser();
-            this.executor = new PartialJsonResultExecutor(this.writerFactory, this.logger, this.options, Mock.Of<ArrayPool<char>>(), this.mvcPartialJsonFields);
+            this.executor = new PartialJsonResultExecutor(this.writerFactory, this.logger, this.options, this.fieldsParser, Mock.Of<ArrayPool<char>>());
             this.actionContext = new ActionContext() { HttpContext = this.httpContext };
         }
 

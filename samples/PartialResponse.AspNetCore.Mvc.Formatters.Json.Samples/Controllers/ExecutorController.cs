@@ -2,8 +2,6 @@
 
 using System.Collections.Generic;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Options;
-using PartialResponse.Extensions.DependencyInjection;
 
 namespace PartialResponse.AspNetCore.Mvc.Formatters.Json.Samples.Controllers
 {

@@ -24,6 +24,7 @@ namespace PartialResponse.AspNetCore.Mvc.Formatters.Json.Internal
     {
         private static readonly string DefaultContentType = new MediaTypeHeaderValue("application/json") { Encoding = Encoding.UTF8 }.ToString();
 
+        private readonly IFieldsParser fieldsParser;
         private readonly IArrayPool<char> charPool;
 
         /// <summary>
@@ -32,9 +33,9 @@ namespace PartialResponse.AspNetCore.Mvc.Formatters.Json.Internal
         /// <param name="writerFactory">The <see cref="IHttpResponseStreamWriterFactory"/>.</param>
         /// <param name="logger">The <see cref="ILogger{PartialJsonResultExecutor}"/>.</param>
         /// <param name="options">The <see cref="IOptions{MvcPartialJsonOptions}"/>.</param>
+        /// <param name="fieldsParser">The <see cref="fieldsParser"/>.</param>
         /// <param name="charPool">The <see cref="ArrayPool{Char}"/> for creating <see cref="T:char[]"/> buffers.</param>
-        /// <param name="fieldsParser">The <see cref="FieldsParser"/>.</param>
-        public PartialJsonResultExecutor(IHttpResponseStreamWriterFactory writerFactory, ILogger<PartialJsonResultExecutor> logger, IOptions<MvcPartialJsonOptions> options, ArrayPool<char> charPool, IFieldsParser fieldsParser)
+        public PartialJsonResultExecutor(IHttpResponseStreamWriterFactory writerFactory, ILogger<PartialJsonResultExecutor> logger, IOptions<MvcPartialJsonOptions> options, IFieldsParser fieldsParser, ArrayPool<char> charPool)
         {
             if (writerFactory == null)
             {
@@ -51,21 +52,21 @@ namespace PartialResponse.AspNetCore.Mvc.Formatters.Json.Internal
                 throw new ArgumentNullException(nameof(options));
             }
 
-            if (charPool == null)
-            {
-                throw new ArgumentNullException(nameof(charPool));
-            }
-
             if (fieldsParser == null)
             {
                 throw new ArgumentNullException(nameof(fieldsParser));
             }
 
+            if (charPool == null)
+            {
+                throw new ArgumentNullException(nameof(charPool));
+            }
+
             this.WriterFactory = writerFactory;
             this.Logger = logger;
             this.Options = options.Value;
+            this.fieldsParser = fieldsParser;
             this.charPool = new JsonArrayPool<char>(charPool);
-            this.FieldsParser = fieldsParser;
         }
 
         /// <summary>
@@ -82,11 +83,6 @@ namespace PartialResponse.AspNetCore.Mvc.Formatters.Json.Internal
         /// Gets the <see cref="IHttpResponseStreamWriterFactory"/>.
         /// </summary>
         protected IHttpResponseStreamWriterFactory WriterFactory { get; }
-
-        /// <summary>
-        /// Gets the <see cref="FieldsParser"/>
-        /// </summary>
-        protected IFieldsParser FieldsParser { get; }
 
         /// <summary>
         /// Executes the <see cref="PartialJsonResult"/> and writes the response.
@@ -108,7 +104,7 @@ namespace PartialResponse.AspNetCore.Mvc.Formatters.Json.Internal
 
             var response = context.HttpContext.Response;
 
-            var fieldsParserResult = this.FieldsParser.Parse(context.HttpContext.Request);
+            var fieldsParserResult = this.fieldsParser.Parse(context.HttpContext.Request);
 
             if (fieldsParserResult.HasError && !this.Options.IgnoreParseErrors)
             {

@@ -16,14 +16,9 @@ namespace PartialResponse.AspNetCore.Mvc
         public bool IgnoreCase { get; set; }
 
         /// <summary>
-        /// Gets or sets a value indicating whether fields parse errors should be ignore or return a 400 error
+        /// Gets or sets a value indicating whether fields parse errors should be ignored or return a 400 status code.
         /// </summary>
-        public bool IgnoreParseErrors { get; set; }
-
-        /// <summary>
-        /// Gets or sets the get parameter used to parse the fields
-        /// </summary>
-        public string FieldsParamName { get; set; } = "fields";
+        public bool IgnoreParseErrors { get; set; } = false;
 
         /// <summary>
         /// Gets the <see cref="JsonSerializerSettings"/> that are used by this application.

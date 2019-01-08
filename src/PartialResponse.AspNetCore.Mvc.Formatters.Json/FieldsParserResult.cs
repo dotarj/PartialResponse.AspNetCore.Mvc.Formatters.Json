@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Arjen Post. See LICENSE and NOTICE in the project root for license information.
 
 using PartialResponse.Core;
-using PartialResponse.Extensions.DependencyInjection;
 
 namespace PartialResponse.AspNetCore.Mvc.Formatters.Json
 {

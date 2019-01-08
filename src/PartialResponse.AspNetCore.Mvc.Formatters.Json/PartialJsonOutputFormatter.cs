@@ -7,12 +7,10 @@ using System.Text;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.Formatters;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
+using PartialResponse.AspNetCore.Mvc.Formatters.Json;
 using PartialResponse.AspNetCore.Mvc.Formatters.Json.Internal;
 using PartialResponse.Core;
-using PartialResponse.Extensions.DependencyInjection;
 
 namespace PartialResponse.AspNetCore.Mvc.Formatters
 {
@@ -23,6 +21,7 @@ namespace PartialResponse.AspNetCore.Mvc.Formatters
     {
         internal const string BypassPartialResponseKey = "BypassPartialResponse";
 
+        private readonly IFieldsParser fieldsParser;
         private readonly IArrayPool<char> charPool;
         private readonly MvcPartialJsonOptions options;
 
@@ -38,13 +37,19 @@ namespace PartialResponse.AspNetCore.Mvc.Formatters
         /// (<see cref="MvcPartialJsonOptions.SerializerSettings"/>) or an instance
         /// <see cref="JsonSerializerSettingsProvider.CreateSerializerSettings"/> initially returned.
         /// </param>
+        /// <param name="fieldsParser">The <see cref="IFieldsParser"/>.</param>
         /// <param name="charPool">The <see cref="ArrayPool{Char}"/>.</param>
-        /// <param name="options">MvcPartialJson options</param>
-        public PartialJsonOutputFormatter(JsonSerializerSettings serializerSettings, ArrayPool<char> charPool, MvcPartialJsonOptions options)
+        /// <param name="options">The <see cref="MvcPartialJsonOptions"/>.</param>
+        public PartialJsonOutputFormatter(JsonSerializerSettings serializerSettings, IFieldsParser fieldsParser, ArrayPool<char> charPool, MvcPartialJsonOptions options)
         {
             if (serializerSettings == null)
             {
                 throw new ArgumentNullException(nameof(serializerSettings));
+            }
+
+            if (fieldsParser == null)
+            {
+                throw new ArgumentNullException(nameof(fieldsParser));
             }
 
             if (charPool == null)
@@ -58,6 +63,7 @@ namespace PartialResponse.AspNetCore.Mvc.Formatters
             }
 
             this.SerializerSettings = serializerSettings;
+            this.fieldsParser = fieldsParser;
             this.charPool = new JsonArrayPool<char>(charPool);
             this.options = options;
 
@@ -90,21 +96,18 @@ namespace PartialResponse.AspNetCore.Mvc.Formatters
             }
 
             var response = context.HttpContext.Response;
-            var serviceProvider = context.HttpContext.RequestServices;
-            var mvcPartialJsonFields = serviceProvider.GetService<IFieldsParser>();
-            var mvcPartialJsonOptions = serviceProvider.GetService<IOptions<MvcPartialJsonOptions>>();
 
             Fields? fields = null;
 
             if (!this.ShouldBypassPartialResponse(context.HttpContext))
             {
-                var fieldsParserResult = mvcPartialJsonFields.Parse(context.HttpContext.Request);
+                var fieldsParserResult = this.fieldsParser.Parse(context.HttpContext.Request);
                 if (fieldsParserResult.IsFieldsSet && !fieldsParserResult.HasError)
                 {
                     fields = fieldsParserResult.Fields;
                 }
 
-                if (fieldsParserResult.HasError && !mvcPartialJsonOptions.Value.IgnoreParseErrors)
+                if (fieldsParserResult.HasError && !this.options.IgnoreParseErrors)
                 {
                     response.StatusCode = 400;
 
