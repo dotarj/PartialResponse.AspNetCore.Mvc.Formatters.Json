@@ -1,6 +1,5 @@
 // Copyright (c) Arjen Post. See LICENSE and NOTICE in the project root for license information.
 
-using System;
 using System.Buffers;
 using System.Collections.Generic;
 using System.IO;
@@ -8,37 +7,28 @@ using System.Text;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.Formatters;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Moq;
 using Newtonsoft.Json;
-using PartialResponse.Extensions.DependencyInjection;
+using PartialResponse.Core;
 using Xunit;
 
 namespace PartialResponse.AspNetCore.Mvc.Formatters.Json.Tests
 {
     public class PartialJsonOutputFormatterTests
     {
+        private readonly PartialJsonOutputFormatter formatter;
         private readonly IFieldsParser fieldsParser = Mock.Of<IFieldsParser>();
         private readonly IOptions<MvcPartialJsonOptions> options = Mock.Of<IOptions<MvcPartialJsonOptions>>();
         private readonly MvcPartialJsonOptions partialJsonOptions = new MvcPartialJsonOptions();
-        private readonly ILogger<FieldsParser> loggerMvcPartialJsonFields = Mock.Of<ILogger<FieldsParser>>();
         private readonly HttpContext httpContext = Mock.Of<HttpContext>();
         private readonly Dictionary<object, object> httpContextItems = new Dictionary<object, object>();
         private readonly HttpRequest httpRequest = Mock.Of<HttpRequest>();
         private readonly HttpResponse httpResponse = Mock.Of<HttpResponse>();
-        private readonly IQueryCollection queryCollection = Mock.Of<IQueryCollection>();
         private readonly StringBuilder body = new StringBuilder();
-        private readonly IServiceProvider serviceProvider = Mock.Of<IServiceProvider>();
-        private readonly IHttpContextAccessor httpContextAccessor = Mock.Of<IHttpContextAccessor>();
 
         public PartialJsonOutputFormatterTests()
         {
-            Mock.Get(this.httpRequest)
-                .SetupGet(httpRequest => httpRequest.Query)
-                .Returns(this.queryCollection);
-
             Mock.Get(this.httpContext)
                 .SetupGet(httpContext => httpContext.Request)
                 .Returns(this.httpRequest);
@@ -51,10 +41,6 @@ namespace PartialResponse.AspNetCore.Mvc.Formatters.Json.Tests
                 .SetupGet(httpContext => httpContext.Items)
                 .Returns(this.httpContextItems);
 
-            Mock.Get(this.httpContext)
-                .SetupGet(httpContext => httpContext.RequestServices)
-                .Returns(this.serviceProvider);
-
             Mock.Get(this.httpRequest)
                 .SetupGet(httpRequest => httpRequest.HttpContext)
                 .Returns(this.httpContext);
@@ -63,17 +49,7 @@ namespace PartialResponse.AspNetCore.Mvc.Formatters.Json.Tests
                 .SetupGet(options => options.Value)
                 .Returns(this.partialJsonOptions);
 
-            Mock.Get(this.serviceProvider)
-                .Setup(provider => provider.GetService(typeof(IFieldsParser)))
-                .Returns(() => this.fieldsParser);
-
-            Mock.Get(this.serviceProvider)
-                .Setup(provider => provider.GetService(typeof(IOptions<MvcPartialJsonOptions>)))
-                .Returns(() => this.options);
-
-            Mock.Get(this.httpContextAccessor)
-                .SetupGet(httpContextAccessor => httpContextAccessor.HttpContext)
-                .Returns(this.httpContext);
+            this.formatter = new PartialJsonOutputFormatter(new JsonSerializerSettings(), this.fieldsParser, Mock.Of<ArrayPool<char>>(), this.partialJsonOptions);
         }
 
         [Fact]
@@ -84,83 +60,50 @@ namespace PartialResponse.AspNetCore.Mvc.Formatters.Json.Tests
                 .SetupGet(httpResponse => httpResponse.StatusCode)
                 .Returns(200);
 
-            Mock.Get(this.queryCollection)
-                .Setup(queryCollection => queryCollection.ContainsKey("fields"))
-                .Returns(true);
-
-            Mock.Get(this.queryCollection)
-                .SetupGet(queryCollection => queryCollection["fields"])
-                .Returns("foo/");
+            Mock.Get(this.fieldsParser)
+                .Setup(fieldsParser => fieldsParser.Parse(this.httpRequest))
+                .Returns(FieldsParserResult.Failure());
 
             this.partialJsonOptions.IgnoreParseErrors = false;
             this.partialJsonOptions.IgnoreCase = false;
 
-            var writeContext = new OutputFormatterWriteContext(this.httpContext, (stream, encoding) => new StringWriter(this.body), typeof(object), new { });
-            var formatter = new PartialJsonOutputFormatter(new JsonSerializerSettings(), this.fieldsParser, Mock.Of<ArrayPool<char>>(), this.partialJsonOptions);
+            var writeContext = this.CreateWriteContext(new { });
 
             // Act
-            await formatter.WriteResponseBodyAsync(writeContext, Encoding.UTF8);
+            await this.formatter.WriteResponseBodyAsync(writeContext, Encoding.UTF8);
 
             // Assert
             Mock.Get(this.httpResponse)
                 .VerifySet(httpResponse => httpResponse.StatusCode = 400);
+
+            Assert.Equal(0, this.body.Length);
         }
 
         [Fact]
-        public async Task TheWriteResponseBodyAsyncMethodShouldReturnStatusCode400IfFieldsMalformedUnlessIgnored()
+        public async Task TheWriteResponseBodyAsyncMethodShouldNotReturnStatusCode400IfFieldsMalformedButParseErrorsIgnored()
         {
             // Arrange
             Mock.Get(this.httpResponse)
                 .SetupGet(httpResponse => httpResponse.StatusCode)
                 .Returns(200);
 
-            Mock.Get(this.queryCollection)
-                .Setup(queryCollection => queryCollection.ContainsKey("fields"))
-                .Returns(true);
-
-            Mock.Get(this.queryCollection)
-                .SetupGet(queryCollection => queryCollection["fields"])
-                .Returns("foo/");
+            Mock.Get(this.fieldsParser)
+                .Setup(fieldsParser => fieldsParser.Parse(this.httpRequest))
+                .Returns(FieldsParserResult.Failure());
 
             this.partialJsonOptions.IgnoreParseErrors = true;
             this.partialJsonOptions.IgnoreCase = false;
 
-            var writeContext = new OutputFormatterWriteContext(this.httpContext, (stream, encoding) => new StringWriter(this.body), typeof(object), new { });
-            var formatter = new PartialJsonOutputFormatter(new JsonSerializerSettings(), this.fieldsParser, Mock.Of<ArrayPool<char>>(), this.partialJsonOptions);
+            var writeContext = this.CreateWriteContext(new { foo = "bar" });
 
             // Act
-            await formatter.WriteResponseBodyAsync(writeContext, Encoding.UTF8);
+            await this.formatter.WriteResponseBodyAsync(writeContext, Encoding.UTF8);
 
             // Assert
-            Assert.Equal("{}", this.body.ToString());
-        }
-
-        [Fact]
-        public async Task TheWriteResponseBodyAsyncMethodShouldNotWriteBodyIfFieldsMalformed()
-        {
-            // Arrange
             Mock.Get(this.httpResponse)
-                .SetupGet(httpResponse => httpResponse.StatusCode)
-                .Returns(200);
+                .VerifySet(httpResponse => httpResponse.StatusCode = 400, Times.Never);
 
-            Mock.Get(this.queryCollection)
-                .Setup(queryCollection => queryCollection.ContainsKey("fields"))
-                .Returns(true);
-
-            Mock.Get(this.queryCollection)
-                .SetupGet(queryCollection => queryCollection["fields"])
-                .Returns("foo/");
-
-            this.partialJsonOptions.IgnoreCase = false;
-
-            var writeContext = new OutputFormatterWriteContext(this.httpContext, (stream, encoding) => new StringWriter(this.body), typeof(object), new { });
-            var formatter = new PartialJsonOutputFormatter(new JsonSerializerSettings(), this.fieldsParser, Mock.Of<ArrayPool<char>>(), this.partialJsonOptions);
-
-            // Act
-            await formatter.WriteResponseBodyAsync(writeContext, Encoding.UTF8);
-
-            // Assert
-            Assert.Equal(0, this.body.Length);
+            Assert.Equal("{\"foo\":\"bar\"}", this.body.ToString());
         }
 
         [Fact]
@@ -171,19 +114,14 @@ namespace PartialResponse.AspNetCore.Mvc.Formatters.Json.Tests
                 .SetupGet(httpResponse => httpResponse.StatusCode)
                 .Returns(200);
 
-            Mock.Get(this.queryCollection)
-                .Setup(queryCollection => queryCollection.ContainsKey("fields"))
-                .Returns(false);
+            Mock.Get(this.fieldsParser)
+                .Setup(fieldsParser => fieldsParser.Parse(this.httpRequest))
+                .Returns(FieldsParserResult.NoValue());
 
-            this.partialJsonOptions.IgnoreCase = false;
-
-            var value = new { foo = "bar" };
-
-            var writeContext = new OutputFormatterWriteContext(this.httpContext, (stream, encoding) => new StringWriter(this.body), typeof(object), value);
-            var formatter = new PartialJsonOutputFormatter(new JsonSerializerSettings(), this.fieldsParser, Mock.Of<ArrayPool<char>>(), this.partialJsonOptions);
+            var writeContext = this.CreateWriteContext(new { foo = "bar" });
 
             // Act
-            await formatter.WriteResponseBodyAsync(writeContext, Encoding.UTF8);
+            await this.formatter.WriteResponseBodyAsync(writeContext, Encoding.UTF8);
 
             // Assert
             Assert.Equal("{\"foo\":\"bar\"}", this.body.ToString());
@@ -197,23 +135,16 @@ namespace PartialResponse.AspNetCore.Mvc.Formatters.Json.Tests
                 .SetupGet(httpResponse => httpResponse.StatusCode)
                 .Returns(200);
 
-            Mock.Get(this.queryCollection)
-                .Setup(queryCollection => queryCollection.ContainsKey("fields"))
-                .Returns(true);
+            Fields.TryParse("foo", out var fields);
 
-            Mock.Get(this.queryCollection)
-                .SetupGet(queryCollection => queryCollection["fields"])
-                .Returns("foo");
+            Mock.Get(this.fieldsParser)
+                .Setup(fieldsParser => fieldsParser.Parse(this.httpRequest))
+                .Returns(FieldsParserResult.Success(fields));
 
-            this.partialJsonOptions.IgnoreCase = false;
-
-            var value = new { foo = "bar", baz = "qux" };
-
-            var writeContext = new OutputFormatterWriteContext(this.httpContext, (stream, encoding) => new StringWriter(this.body), typeof(object), value);
-            var formatter = new PartialJsonOutputFormatter(new JsonSerializerSettings(), this.fieldsParser, Mock.Of<ArrayPool<char>>(), this.partialJsonOptions);
+            var writeContext = this.CreateWriteContext(new { foo = "bar", baz = "qux" });
 
             // Act
-            await formatter.WriteResponseBodyAsync(writeContext, Encoding.UTF8);
+            await this.formatter.WriteResponseBodyAsync(writeContext, Encoding.UTF8);
 
             // Assert
             Assert.Equal("{\"foo\":\"bar\"}", this.body.ToString());
@@ -227,23 +158,18 @@ namespace PartialResponse.AspNetCore.Mvc.Formatters.Json.Tests
                 .SetupGet(httpResponse => httpResponse.StatusCode)
                 .Returns(200);
 
-            Mock.Get(this.queryCollection)
-                .Setup(queryCollection => queryCollection.ContainsKey("fields"))
-                .Returns(true);
+            Fields.TryParse("FOO", out var fields);
 
-            Mock.Get(this.queryCollection)
-                .SetupGet(queryCollection => queryCollection["fields"])
-                .Returns("FOO");
+            Mock.Get(this.fieldsParser)
+                .Setup(fieldsParser => fieldsParser.Parse(this.httpRequest))
+                .Returns(FieldsParserResult.Success(fields));
 
             this.partialJsonOptions.IgnoreCase = true;
 
-            var value = new { foo = "bar" };
-
-            var writeContext = new OutputFormatterWriteContext(this.httpContext, (stream, encoding) => new StringWriter(this.body), typeof(object), value);
-            var formatter = new PartialJsonOutputFormatter(new JsonSerializerSettings(), this.fieldsParser, Mock.Of<ArrayPool<char>>(), this.partialJsonOptions);
+            var writeContext = this.CreateWriteContext(new { foo = "bar" });
 
             // Act
-            await formatter.WriteResponseBodyAsync(writeContext, Encoding.UTF8);
+            await this.formatter.WriteResponseBodyAsync(writeContext, Encoding.UTF8);
 
             // Assert
             Assert.Equal("{\"foo\":\"bar\"}", this.body.ToString());
@@ -257,23 +183,18 @@ namespace PartialResponse.AspNetCore.Mvc.Formatters.Json.Tests
                 .SetupGet(httpResponse => httpResponse.StatusCode)
                 .Returns(200);
 
-            Mock.Get(this.queryCollection)
-                .Setup(queryCollection => queryCollection.ContainsKey("fields"))
-                .Returns(true);
+            Fields.TryParse("FOO", out var fields);
 
-            Mock.Get(this.queryCollection)
-                .SetupGet(queryCollection => queryCollection["fields"])
-                .Returns("FOO");
+            Mock.Get(this.fieldsParser)
+                .Setup(fieldsParser => fieldsParser.Parse(this.httpRequest))
+                .Returns(FieldsParserResult.Success(fields));
 
             this.partialJsonOptions.IgnoreCase = false;
 
-            var value = new { foo = "bar" };
-
-            var writeContext = new OutputFormatterWriteContext(this.httpContext, (stream, encoding) => new StringWriter(this.body), typeof(object), value);
-            var formatter = new PartialJsonOutputFormatter(new JsonSerializerSettings(), this.fieldsParser, Mock.Of<ArrayPool<char>>(), this.partialJsonOptions);
+            var writeContext = this.CreateWriteContext(new { foo = "bar" });
 
             // Act
-            await formatter.WriteResponseBodyAsync(writeContext, Encoding.UTF8);
+            await this.formatter.WriteResponseBodyAsync(writeContext, Encoding.UTF8);
 
             // Assert
             Assert.Equal("{}", this.body.ToString());
@@ -287,24 +208,18 @@ namespace PartialResponse.AspNetCore.Mvc.Formatters.Json.Tests
                 .SetupGet(httpResponse => httpResponse.StatusCode)
                 .Returns(200);
 
-            Mock.Get(this.queryCollection)
-                .Setup(queryCollection => queryCollection.ContainsKey("fields"))
-                .Returns(true);
+            Fields.TryParse(string.Empty, out var fields);
 
-            Mock.Get(this.queryCollection)
-                .SetupGet(queryCollection => queryCollection["fields"])
-                .Returns(string.Empty);
+            Mock.Get(this.fieldsParser)
+                .Setup(fieldsParser => fieldsParser.Parse(this.httpRequest))
+                .Returns(FieldsParserResult.Success(fields));
 
             this.httpRequest.BypassPartialResponse();
-            this.partialJsonOptions.IgnoreCase = false;
 
-            var value = new { foo = "bar" };
-
-            var writeContext = new OutputFormatterWriteContext(this.httpContext, (stream, encoding) => new StringWriter(this.body), typeof(object), value);
-            var formatter = new PartialJsonOutputFormatter(new JsonSerializerSettings(), this.fieldsParser, Mock.Of<ArrayPool<char>>(), this.partialJsonOptions);
+            var writeContext = this.CreateWriteContext(new { foo = "bar" });
 
             // Act
-            await formatter.WriteResponseBodyAsync(writeContext, Encoding.UTF8);
+            await this.formatter.WriteResponseBodyAsync(writeContext, Encoding.UTF8);
 
             // Assert
             Assert.Equal("{\"foo\":\"bar\"}", this.body.ToString());
@@ -318,26 +233,24 @@ namespace PartialResponse.AspNetCore.Mvc.Formatters.Json.Tests
                 .SetupGet(httpResponse => httpResponse.StatusCode)
                 .Returns(500);
 
-            Mock.Get(this.queryCollection)
-                .Setup(queryCollection => queryCollection.ContainsKey("fields"))
-                .Returns(true);
+            Fields.TryParse(string.Empty, out var fields);
 
-            Mock.Get(this.queryCollection)
-                .SetupGet(queryCollection => queryCollection["fields"])
-                .Returns(string.Empty);
+            Mock.Get(this.fieldsParser)
+                .Setup(fieldsParser => fieldsParser.Parse(this.httpRequest))
+                .Returns(FieldsParserResult.Success(fields));
 
-            this.partialJsonOptions.IgnoreCase = false;
-
-            var value = new { foo = "bar" };
-
-            var writeContext = new OutputFormatterWriteContext(this.httpContext, (stream, encoding) => new StringWriter(this.body), typeof(object), value);
-            var formatter = new PartialJsonOutputFormatter(new JsonSerializerSettings(), this.fieldsParser, Mock.Of<ArrayPool<char>>(), this.partialJsonOptions);
+            var writeContext = this.CreateWriteContext(new { foo = "bar" });
 
             // Act
-            await formatter.WriteResponseBodyAsync(writeContext, Encoding.UTF8);
+            await this.formatter.WriteResponseBodyAsync(writeContext, Encoding.UTF8);
 
             // Assert
             Assert.Equal("{\"foo\":\"bar\"}", this.body.ToString());
+        }
+
+        private OutputFormatterWriteContext CreateWriteContext(object value)
+        {
+            return new OutputFormatterWriteContext(this.httpContext, (stream, encoding) => new StringWriter(this.body), typeof(object), value);
         }
     }
 }

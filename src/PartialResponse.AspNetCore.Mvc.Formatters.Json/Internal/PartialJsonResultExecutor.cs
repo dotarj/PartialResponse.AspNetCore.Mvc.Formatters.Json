@@ -4,7 +4,6 @@ using System;
 using System.Buffers;
 using System.Text;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Microsoft.AspNetCore.Mvc.Internal;
@@ -12,8 +11,6 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.Net.Http.Headers;
 using Newtonsoft.Json;
-using PartialResponse.Core;
-using PartialResponse.Extensions.DependencyInjection;
 
 namespace PartialResponse.AspNetCore.Mvc.Formatters.Json.Internal
 {
@@ -102,9 +99,10 @@ namespace PartialResponse.AspNetCore.Mvc.Formatters.Json.Internal
                 throw new ArgumentNullException(nameof(result));
             }
 
+            var request = context.HttpContext.Request;
             var response = context.HttpContext.Response;
 
-            var fieldsParserResult = this.fieldsParser.Parse(context.HttpContext.Request);
+            var fieldsParserResult = this.fieldsParser.Parse(request);
 
             if (fieldsParserResult.HasError && !this.Options.IgnoreParseErrors)
             {
