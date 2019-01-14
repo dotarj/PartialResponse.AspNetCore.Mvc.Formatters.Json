@@ -7,14 +7,14 @@ using Xunit;
 
 namespace PartialResponse.AspNetCore.Mvc.Formatters.Json.Tests
 {
-    public class FieldsParserTests
+    public class DefaultFieldsParserTests
     {
-        private readonly FieldsParser fieldsParser = new FieldsParser();
+        private readonly DefaultFieldsParser fieldsParser = new DefaultFieldsParser();
         private readonly HttpRequest request = Mock.Of<HttpRequest>();
         private readonly HttpContext context = new DefaultHttpContext();
         private readonly IQueryCollection queryCollection = Mock.Of<IQueryCollection>();
 
-        public FieldsParserTests()
+        public DefaultFieldsParserTests()
         {
             Mock.Get(this.request)
                 .SetupGet(request => request.HttpContext)

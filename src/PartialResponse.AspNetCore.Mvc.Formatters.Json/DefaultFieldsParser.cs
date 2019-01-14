@@ -8,7 +8,7 @@ namespace PartialResponse.AspNetCore.Mvc.Formatters.Json
     /// <summary>
     /// Parses the fields parameter from the request.
     /// </summary>
-    public class FieldsParser : IFieldsParser
+    public class DefaultFieldsParser : IFieldsParser
     {
         private const string FieldsCacheKey = "FieldsCache";
         private const string FieldsParameterName = "fields";
