@@ -102,16 +102,17 @@ namespace PartialResponse.AspNetCore.Mvc.Formatters
             if (!this.ShouldBypassPartialResponse(context.HttpContext))
             {
                 var fieldsParserResult = this.fieldsParser.Parse(context.HttpContext.Request);
-                if (fieldsParserResult.IsFieldsSet && !fieldsParserResult.HasError)
-                {
-                    fields = fieldsParserResult.Fields;
-                }
 
                 if (fieldsParserResult.HasError && !this.options.IgnoreParseErrors)
                 {
                     response.StatusCode = 400;
 
                     return;
+                }
+
+                if (fieldsParserResult.IsFieldsSet && !fieldsParserResult.HasError)
+                {
+                    fields = fieldsParserResult.Fields;
                 }
             }
 

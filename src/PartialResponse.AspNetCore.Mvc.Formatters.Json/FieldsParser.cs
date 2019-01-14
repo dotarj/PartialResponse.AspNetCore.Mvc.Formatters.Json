@@ -6,7 +6,7 @@ using PartialResponse.Core;
 namespace PartialResponse.AspNetCore.Mvc.Formatters.Json
 {
     /// <summary>
-    /// Parses the fields from the request.
+    /// Parses the fields parameter from the request.
     /// </summary>
     public class FieldsParser : IFieldsParser
     {
@@ -14,7 +14,7 @@ namespace PartialResponse.AspNetCore.Mvc.Formatters.Json
         private const string FieldsParameterName = "fields";
 
         /// <summary>
-        /// Parses the fields from the request.
+        /// Parses the fields parameter from the request.
         /// </summary>
         /// <param name="request">The request.</param>
         /// <returns>The parsed fields.</returns>
@@ -25,7 +25,7 @@ namespace PartialResponse.AspNetCore.Mvc.Formatters.Json
                 throw new ArgumentNullException(nameof(request));
             }
 
-            FieldsParserResult fieldsResult = default;
+            FieldsParserResult fieldsResult = null;
 
             var httpContext = request.HttpContext;
 

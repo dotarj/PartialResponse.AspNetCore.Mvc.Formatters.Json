@@ -4,12 +4,12 @@ using Microsoft.AspNetCore.Http;
 namespace PartialResponse.AspNetCore.Mvc.Formatters.Json
 {
     /// <summary>
-    /// Parses the fields from the request.
+    /// Parses the fields parameter from the request.
     /// </summary>
     public interface IFieldsParser
     {
         /// <summary>
-        /// Parses the fields from the request.
+        /// Parses the fields parameter from the request.
         /// </summary>
         /// <param name="request">The request.</param>
         /// <returns>The parsed fields.</returns>

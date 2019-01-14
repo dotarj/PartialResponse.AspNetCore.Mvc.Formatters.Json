@@ -7,6 +7,7 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using PartialResponse.AspNetCore.Mvc;
+using PartialResponse.AspNetCore.Mvc.Formatters.Json;
 using PartialResponse.AspNetCore.Mvc.Formatters.Json.Internal;
 
 namespace PartialResponse.Extensions.DependencyInjection
@@ -87,6 +88,7 @@ namespace PartialResponse.Extensions.DependencyInjection
         {
             services.TryAddEnumerable(ServiceDescriptor.Transient<IConfigureOptions<MvcOptions>, MvcPartialJsonMvcOptionsSetup>());
             services.TryAddSingleton<PartialJsonResultExecutor>();
+            services.TryAddSingleton<IFieldsParser, FieldsParser>();
         }
     }
 }
