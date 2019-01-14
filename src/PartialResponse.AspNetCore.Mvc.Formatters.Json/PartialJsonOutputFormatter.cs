@@ -56,6 +56,7 @@ namespace PartialResponse.AspNetCore.Mvc.Formatters
             this.SupportedEncodings.Add(Encoding.UTF8);
             this.SupportedEncodings.Add(Encoding.Unicode);
             this.SupportedMediaTypes.Add(MediaTypeHeaderValues.ApplicationJson);
+            this.SupportedMediaTypes.Add(MediaTypeHeaderValues.ApplicationWildcardJson);
             this.SupportedMediaTypes.Add(MediaTypeHeaderValues.TextJson);
         }
 
