@@ -2,7 +2,6 @@
 
 using System;
 using PartialResponse.AspNetCore.Mvc.Formatters;
-using PartialResponse.Core;
 
 namespace Microsoft.AspNetCore.Http
 {
@@ -19,33 +18,10 @@ namespace Microsoft.AspNetCore.Http
         {
             if (request == null)
             {
-                throw new ArgumentNullException("request");
+                throw new ArgumentNullException(nameof(request));
             }
 
             request.HttpContext.Items[PartialJsonOutputFormatter.BypassPartialResponseKey] = null;
-        }
-
-        internal static bool TryGetFields(this HttpRequest request, out Fields? result)
-        {
-            if (!request.Query.ContainsKey("fields"))
-            {
-                result = null;
-
-                return true;
-            }
-
-            Fields fields;
-
-            if (!Fields.TryParse(request.Query["fields"][0], out fields))
-            {
-                result = null;
-
-                return false;
-            }
-
-            result = fields;
-
-            return true;
         }
     }
 }

@@ -12,6 +12,7 @@ using Microsoft.Extensions.Options;
 using Moq;
 using Newtonsoft.Json;
 using PartialResponse.AspNetCore.Mvc.Formatters.Json.Internal;
+using PartialResponse.Core;
 using Xunit;
 
 namespace PartialResponse.AspNetCore.Mvc.Formatters.Json.Tests
@@ -20,6 +21,7 @@ namespace PartialResponse.AspNetCore.Mvc.Formatters.Json.Tests
     {
         private readonly PartialJsonResultExecutor executor;
         private readonly ActionContext actionContext;
+        private readonly IFieldsParser fieldsParser = Mock.Of<IFieldsParser>();
         private readonly IHttpResponseStreamWriterFactory writerFactory = Mock.Of<IHttpResponseStreamWriterFactory>();
         private readonly ILogger<PartialJsonResultExecutor> logger = Mock.Of<ILogger<PartialJsonResultExecutor>>();
         private readonly IOptions<MvcPartialJsonOptions> options = Mock.Of<IOptions<MvcPartialJsonOptions>>();
@@ -27,15 +29,10 @@ namespace PartialResponse.AspNetCore.Mvc.Formatters.Json.Tests
         private readonly HttpContext httpContext = Mock.Of<HttpContext>();
         private readonly HttpRequest httpRequest = Mock.Of<HttpRequest>();
         private readonly HttpResponse httpResponse = Mock.Of<HttpResponse>();
-        private readonly IQueryCollection queryCollection = Mock.Of<IQueryCollection>();
         private readonly StringBuilder body = new StringBuilder();
 
         public PartialJsonResultExecutorTests()
         {
-            Mock.Get(this.httpRequest)
-                .SetupGet(httpRequest => httpRequest.Query)
-                .Returns(this.queryCollection);
-
             Mock.Get(this.httpContext)
                 .SetupGet(httpContext => httpContext.Request)
                 .Returns(this.httpRequest);
@@ -52,7 +49,7 @@ namespace PartialResponse.AspNetCore.Mvc.Formatters.Json.Tests
                 .SetupGet(options => options.Value)
                 .Returns(this.partialJsonOptions);
 
-            this.executor = new PartialJsonResultExecutor(this.writerFactory, this.logger, this.options, Mock.Of<ArrayPool<char>>());
+            this.executor = new PartialJsonResultExecutor(this.writerFactory, this.logger, this.options, this.fieldsParser, Mock.Of<ArrayPool<char>>());
             this.actionContext = new ActionContext() { HttpContext = this.httpContext };
         }
 
@@ -60,13 +57,9 @@ namespace PartialResponse.AspNetCore.Mvc.Formatters.Json.Tests
         public async Task TheExecuteAsyncMethodShouldReturnStatusCode400IfFieldsMalformed()
         {
             // Arrange
-            Mock.Get(this.queryCollection)
-                .Setup(queryCollection => queryCollection.ContainsKey("fields"))
-                .Returns(true);
-
-            Mock.Get(this.queryCollection)
-                .SetupGet(queryCollection => queryCollection["fields"])
-                .Returns("foo/");
+            Mock.Get(this.fieldsParser)
+                .Setup(fieldsParser => fieldsParser.Parse(this.httpRequest))
+                .Returns(FieldsParserResult.Failed());
 
             var partialJsonResult = new PartialJsonResult(new { });
 
@@ -76,36 +69,39 @@ namespace PartialResponse.AspNetCore.Mvc.Formatters.Json.Tests
             // Assert
             Mock.Get(this.httpResponse)
                 .VerifySet(httpResponse => httpResponse.StatusCode = 400);
+
+            Assert.Equal(0, this.body.Length);
         }
 
         [Fact]
-        public async Task TheExecuteAsyncMethodShouldNotWriteBodyIfFieldsMalformed()
+        public async Task TheExecuteAsyncMethodShouldNotReturnStatusCode400IfFieldsMalformedButParseErrorsIgnored()
         {
             // Arrange
-            Mock.Get(this.queryCollection)
-                .Setup(queryCollection => queryCollection.ContainsKey("fields"))
-                .Returns(true);
+            Mock.Get(this.fieldsParser)
+                .Setup(fieldsParser => fieldsParser.Parse(this.httpRequest))
+                .Returns(FieldsParserResult.Failed());
 
-            Mock.Get(this.queryCollection)
-                .SetupGet(queryCollection => queryCollection["fields"])
-                .Returns("foo/");
+            var partialJsonResult = new PartialJsonResult(new { foo = "bar" });
 
-            var partialJsonResult = new PartialJsonResult(new { });
+            this.partialJsonOptions.IgnoreParseErrors = true;
 
             // Act
             await this.executor.ExecuteAsync(this.actionContext, partialJsonResult);
 
             // Assert
-            Assert.Equal(0, this.body.Length);
+            Mock.Get(this.httpResponse)
+                .VerifySet(httpResponse => httpResponse.StatusCode = 400, Times.Never);
+
+            Assert.Equal("{\"foo\":\"bar\"}", this.body.ToString());
         }
 
         [Fact]
         public async Task TheExecuteAsyncMethodShouldNotApplyFieldsIfNotSupplied()
         {
             // Arrange
-            Mock.Get(this.queryCollection)
-                .Setup(queryCollection => queryCollection.ContainsKey("fields"))
-                .Returns(false);
+            Mock.Get(this.fieldsParser)
+                .Setup(fieldsParser => fieldsParser.Parse(this.httpRequest))
+                .Returns(FieldsParserResult.NoValue());
 
             var partialJsonResult = new PartialJsonResult(new { foo = "bar" }, new JsonSerializerSettings());
 
@@ -120,13 +116,11 @@ namespace PartialResponse.AspNetCore.Mvc.Formatters.Json.Tests
         public async Task TheExecuteAsyncMethodShouldApplyFieldsIfSupplied()
         {
             // Arrange
-            Mock.Get(this.queryCollection)
-                .Setup(queryCollection => queryCollection.ContainsKey("fields"))
-                .Returns(true);
+            Fields.TryParse("foo", out var fields);
 
-            Mock.Get(this.queryCollection)
-                .SetupGet(queryCollection => queryCollection["fields"])
-                .Returns("foo");
+            Mock.Get(this.fieldsParser)
+                .Setup(fieldsParser => fieldsParser.Parse(this.httpRequest))
+                .Returns(FieldsParserResult.Success(fields));
 
             var partialJsonResult = new PartialJsonResult(new { foo = "bar", baz = "qux" }, new JsonSerializerSettings());
 
@@ -141,13 +135,11 @@ namespace PartialResponse.AspNetCore.Mvc.Formatters.Json.Tests
         public async Task TheExecuteAsyncMethodShouldIgnoreCase()
         {
             // Arrange
-            Mock.Get(this.queryCollection)
-                .Setup(queryCollection => queryCollection.ContainsKey("fields"))
-                .Returns(true);
+            Fields.TryParse("FOO", out var fields);
 
-            Mock.Get(this.queryCollection)
-                .SetupGet(queryCollection => queryCollection["fields"])
-                .Returns("FOO");
+            Mock.Get(this.fieldsParser)
+                .Setup(fieldsParser => fieldsParser.Parse(this.httpRequest))
+                .Returns(FieldsParserResult.Success(fields));
 
             this.partialJsonOptions.IgnoreCase = true;
 
@@ -164,13 +156,11 @@ namespace PartialResponse.AspNetCore.Mvc.Formatters.Json.Tests
         public async Task TheExecuteAsyncMethodShouldNotIgnoreCase()
         {
             // Arrange
-            Mock.Get(this.queryCollection)
-                .Setup(queryCollection => queryCollection.ContainsKey("fields"))
-                .Returns(true);
+            Fields.TryParse("FOO", out var fields);
 
-            Mock.Get(this.queryCollection)
-                .SetupGet(queryCollection => queryCollection["fields"])
-                .Returns("FOO");
+            Mock.Get(this.fieldsParser)
+                .Setup(fieldsParser => fieldsParser.Parse(this.httpRequest))
+                .Returns(FieldsParserResult.Success(fields));
 
             this.partialJsonOptions.IgnoreCase = false;
 

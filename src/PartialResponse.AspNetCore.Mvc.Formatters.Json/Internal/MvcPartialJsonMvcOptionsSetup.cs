@@ -18,6 +18,7 @@ namespace PartialResponse.AspNetCore.Mvc.Formatters.Json.Internal
     public class MvcPartialJsonMvcOptionsSetup : IConfigureOptions<MvcOptions>
     {
         private readonly ILoggerFactory loggerFactory;
+        private readonly IFieldsParser fieldsParser;
         private readonly MvcPartialJsonOptions partialJsonOptions;
         private readonly ArrayPool<char> charPool;
         private readonly ObjectPoolProvider objectPoolProvider;
@@ -26,14 +27,20 @@ namespace PartialResponse.AspNetCore.Mvc.Formatters.Json.Internal
         /// Initializes a new instance of the <see cref="MvcPartialJsonMvcOptionsSetup"/> class.
         /// </summary>
         /// <param name="loggerFactory">The logger factory.</param>
+        /// <param name="fieldsParser">The fields parser.</param>
         /// <param name="partialJsonOptions">The options.</param>
         /// <param name="charPool">The character array pool.</param>
         /// <param name="objectPoolProvider">The object pool provider.</param>
-        public MvcPartialJsonMvcOptionsSetup(ILoggerFactory loggerFactory, IOptions<MvcPartialJsonOptions> partialJsonOptions, ArrayPool<char> charPool, ObjectPoolProvider objectPoolProvider)
+        public MvcPartialJsonMvcOptionsSetup(ILoggerFactory loggerFactory, IFieldsParser fieldsParser, IOptions<MvcPartialJsonOptions> partialJsonOptions, ArrayPool<char> charPool, ObjectPoolProvider objectPoolProvider)
         {
             if (loggerFactory == null)
             {
                 throw new ArgumentNullException(nameof(loggerFactory));
+            }
+
+            if (fieldsParser == null)
+            {
+                throw new ArgumentNullException(nameof(fieldsParser));
             }
 
             if (partialJsonOptions == null)
@@ -52,6 +59,7 @@ namespace PartialResponse.AspNetCore.Mvc.Formatters.Json.Internal
             }
 
             this.loggerFactory = loggerFactory;
+            this.fieldsParser = fieldsParser;
             this.partialJsonOptions = partialJsonOptions.Value;
             this.charPool = charPool;
             this.objectPoolProvider = objectPoolProvider;
@@ -63,7 +71,7 @@ namespace PartialResponse.AspNetCore.Mvc.Formatters.Json.Internal
         /// <param name="options">The MVC options.</param>
         public void Configure(MvcOptions options)
         {
-            options.OutputFormatters.Add(new PartialJsonOutputFormatter(this.partialJsonOptions.SerializerSettings, this.charPool, this.partialJsonOptions.IgnoreCase));
+            options.OutputFormatters.Add(new PartialJsonOutputFormatter(this.partialJsonOptions.SerializerSettings, this.fieldsParser, this.charPool, this.partialJsonOptions));
             options.FormatterMappings.SetMediaTypeMappingForFormat("json", MediaTypeHeaderValue.Parse("application/json"));
             options.ModelMetadataDetailsProviders.Add(new SuppressChildValidationMetadataProvider(typeof(JToken)));
         }

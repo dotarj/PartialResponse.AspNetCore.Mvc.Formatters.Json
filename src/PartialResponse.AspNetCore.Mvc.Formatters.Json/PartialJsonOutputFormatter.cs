@@ -8,8 +8,8 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.Formatters;
 using Newtonsoft.Json;
+using PartialResponse.AspNetCore.Mvc.Formatters.Json;
 using PartialResponse.AspNetCore.Mvc.Formatters.Json.Internal;
-using PartialResponse.Core;
 
 namespace PartialResponse.AspNetCore.Mvc.Formatters
 {
@@ -20,8 +20,9 @@ namespace PartialResponse.AspNetCore.Mvc.Formatters
     {
         internal const string BypassPartialResponseKey = "BypassPartialResponse";
 
+        private readonly IFieldsParser fieldsParser;
         private readonly IArrayPool<char> charPool;
-        private readonly bool ignoreCase;
+        private readonly MvcPartialJsonOptions options;
 
         // Perf: JsonSerializers are relatively expensive to create, and are thread safe. We cache
         // the serializer and invalidate it when the settings change.
@@ -35,13 +36,19 @@ namespace PartialResponse.AspNetCore.Mvc.Formatters
         /// (<see cref="MvcPartialJsonOptions.SerializerSettings"/>) or an instance
         /// <see cref="JsonSerializerSettingsProvider.CreateSerializerSettings"/> initially returned.
         /// </param>
+        /// <param name="fieldsParser">The <see cref="IFieldsParser"/>.</param>
         /// <param name="charPool">The <see cref="ArrayPool{Char}"/>.</param>
-        /// <param name="ignoreCase">A value that indicates whether partial response allows case-insensitive matching.</param>
-        public PartialJsonOutputFormatter(JsonSerializerSettings serializerSettings, ArrayPool<char> charPool, bool ignoreCase)
+        /// <param name="options">The <see cref="MvcPartialJsonOptions"/>.</param>
+        public PartialJsonOutputFormatter(JsonSerializerSettings serializerSettings, IFieldsParser fieldsParser, ArrayPool<char> charPool, MvcPartialJsonOptions options)
         {
             if (serializerSettings == null)
             {
                 throw new ArgumentNullException(nameof(serializerSettings));
+            }
+
+            if (fieldsParser == null)
+            {
+                throw new ArgumentNullException(nameof(fieldsParser));
             }
 
             if (charPool == null)
@@ -49,9 +56,15 @@ namespace PartialResponse.AspNetCore.Mvc.Formatters
                 throw new ArgumentNullException(nameof(charPool));
             }
 
+            if (options == null)
+            {
+                throw new ArgumentNullException(nameof(options));
+            }
+
             this.SerializerSettings = serializerSettings;
+            this.fieldsParser = fieldsParser;
             this.charPool = new JsonArrayPool<char>(charPool);
-            this.ignoreCase = ignoreCase;
+            this.options = options;
 
             this.SupportedEncodings.Add(Encoding.UTF8);
             this.SupportedEncodings.Add(Encoding.Unicode);
@@ -82,14 +95,15 @@ namespace PartialResponse.AspNetCore.Mvc.Formatters
                 throw new ArgumentNullException(nameof(selectedEncoding));
             }
 
-            var request = context.HttpContext.Request;
             var response = context.HttpContext.Response;
 
-            Fields? fields = null;
+            FieldsParserResult fieldsParserResult = default;
 
             if (!this.ShouldBypassPartialResponse(context.HttpContext))
             {
-                if (!request.TryGetFields(out fields))
+                fieldsParserResult = this.fieldsParser.Parse(context.HttpContext.Request);
+
+                if (fieldsParserResult.HasError && !this.options.IgnoreParseErrors)
                 {
                     response.StatusCode = 400;
 
@@ -99,7 +113,7 @@ namespace PartialResponse.AspNetCore.Mvc.Formatters
 
             using (var writer = context.WriterFactory(response.Body, selectedEncoding))
             {
-                this.WriteObject(writer, context.Object, fields);
+                this.WriteObject(writer, context.Object, fieldsParserResult);
 
                 // Perf: call FlushAsync to call WriteAsync on the stream with any content left in the TextWriter's
                 // buffers. This is better than just letting dispose handle it (which would result in a synchronous
@@ -149,15 +163,15 @@ namespace PartialResponse.AspNetCore.Mvc.Formatters
             return httpContext.Response.StatusCode != 200;
         }
 
-        private void WriteObject(TextWriter writer, object value, Fields? fields)
+        private void WriteObject(TextWriter writer, object value, FieldsParserResult fieldsParserResult)
         {
             using (var jsonWriter = this.CreateJsonWriter(writer))
             {
                 var jsonSerializer = this.CreateJsonSerializer();
 
-                if (fields.HasValue)
+                if (fieldsParserResult.IsFieldsSet && !fieldsParserResult.HasError)
                 {
-                    jsonSerializer.Serialize(jsonWriter, value, path => fields.Value.Matches(path, this.ignoreCase));
+                    jsonSerializer.Serialize(jsonWriter, value, path => fieldsParserResult.Fields.Matches(path, this.options.IgnoreCase));
                 }
                 else
                 {

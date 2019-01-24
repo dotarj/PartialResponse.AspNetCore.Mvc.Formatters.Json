@@ -1,7 +1,6 @@
 // Copyright (c) Arjen Post. See LICENSE and NOTICE in the project root for license information.
 
 using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Formatters;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
