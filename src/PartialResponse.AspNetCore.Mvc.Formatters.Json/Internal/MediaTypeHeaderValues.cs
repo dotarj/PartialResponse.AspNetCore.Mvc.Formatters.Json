@@ -4,7 +4,7 @@ using Microsoft.Net.Http.Headers;
 
 namespace PartialResponse.AspNetCore.Mvc.Formatters.Json.Internal
 {
-    internal class MediaTypeHeaderValues
+    internal static class MediaTypeHeaderValues
     {
         public static readonly MediaTypeHeaderValue ApplicationJson = MediaTypeHeaderValue.Parse("application/json").CopyAsReadOnly();
 

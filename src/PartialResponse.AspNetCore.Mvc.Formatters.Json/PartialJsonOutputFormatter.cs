@@ -83,7 +83,7 @@ namespace PartialResponse.AspNetCore.Mvc.Formatters
         protected JsonSerializerSettings SerializerSettings { get; }
 
         /// <inheritdoc />
-        public override async Task WriteResponseBodyAsync(OutputFormatterWriteContext context, Encoding selectedEncoding)
+        public override Task WriteResponseBodyAsync(OutputFormatterWriteContext context, Encoding selectedEncoding)
         {
             if (context == null)
             {
@@ -95,31 +95,7 @@ namespace PartialResponse.AspNetCore.Mvc.Formatters
                 throw new ArgumentNullException(nameof(selectedEncoding));
             }
 
-            var response = context.HttpContext.Response;
-
-            FieldsParserResult fieldsParserResult = default;
-
-            if (!this.ShouldBypassPartialResponse(context.HttpContext))
-            {
-                fieldsParserResult = this.fieldsParser.Parse(context.HttpContext.Request);
-
-                if (fieldsParserResult.HasError && !this.options.IgnoreParseErrors)
-                {
-                    response.StatusCode = 400;
-
-                    return;
-                }
-            }
-
-            using (var writer = context.WriterFactory(response.Body, selectedEncoding))
-            {
-                this.WriteObject(writer, context.Object, fieldsParserResult);
-
-                // Perf: call FlushAsync to call WriteAsync on the stream with any content left in the TextWriter's
-                // buffers. This is better than just letting dispose handle it (which would result in a synchronous
-                // write).
-                await writer.FlushAsync();
-            }
+            return this.WriteResponseBodyImplAsync(context, selectedEncoding);
         }
 
         /// <summary>
@@ -151,6 +127,35 @@ namespace PartialResponse.AspNetCore.Mvc.Formatters
             }
 
             return this.serializer;
+        }
+
+        private async Task WriteResponseBodyImplAsync(OutputFormatterWriteContext context, Encoding selectedEncoding)
+        {
+            var response = context.HttpContext.Response;
+
+            FieldsParserResult fieldsParserResult = default;
+
+            if (!this.ShouldBypassPartialResponse(context.HttpContext))
+            {
+                fieldsParserResult = this.fieldsParser.Parse(context.HttpContext.Request);
+
+                if (fieldsParserResult.HasError && !this.options.IgnoreParseErrors)
+                {
+                    response.StatusCode = 400;
+
+                    return;
+                }
+            }
+
+            using (var writer = context.WriterFactory(response.Body, selectedEncoding))
+            {
+                this.WriteObject(writer, context.Object, fieldsParserResult);
+
+                // Perf: call FlushAsync to call WriteAsync on the stream with any content left in the TextWriter's
+                // buffers. This is better than just letting dispose handle it (which would result in a synchronous
+                // write).
+                await writer.FlushAsync();
+            }
         }
 
         private bool ShouldBypassPartialResponse(HttpContext httpContext)
