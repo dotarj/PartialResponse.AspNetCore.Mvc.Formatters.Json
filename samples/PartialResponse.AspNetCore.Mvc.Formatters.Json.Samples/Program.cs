@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Hosting;
 
 namespace PartialResponse.AspNetCore.Mvc.Formatters.Json.Samples
 {
-    public class Program
+    public static class Program
     {
         public static void Main(string[] args)
         {
