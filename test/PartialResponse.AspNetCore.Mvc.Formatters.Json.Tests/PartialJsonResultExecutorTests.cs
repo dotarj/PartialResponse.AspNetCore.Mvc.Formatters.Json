@@ -59,7 +59,7 @@ namespace PartialResponse.AspNetCore.Mvc.Formatters.Json.Tests
             // Arrange
             Mock.Get(this.fieldsParser)
                 .Setup(fieldsParser => fieldsParser.Parse(this.httpRequest))
-                .Returns(FieldsParserResult.Failure());
+                .Returns(FieldsParserResult.Failed());
 
             var partialJsonResult = new PartialJsonResult(new { });
 
@@ -79,7 +79,7 @@ namespace PartialResponse.AspNetCore.Mvc.Formatters.Json.Tests
             // Arrange
             Mock.Get(this.fieldsParser)
                 .Setup(fieldsParser => fieldsParser.Parse(this.httpRequest))
-                .Returns(FieldsParserResult.Failure());
+                .Returns(FieldsParserResult.Failed());
 
             var partialJsonResult = new PartialJsonResult(new { foo = "bar" });
 

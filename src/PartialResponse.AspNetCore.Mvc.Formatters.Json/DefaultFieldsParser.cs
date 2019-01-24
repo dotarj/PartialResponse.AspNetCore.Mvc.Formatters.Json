@@ -25,7 +25,7 @@ namespace PartialResponse.AspNetCore.Mvc.Formatters.Json
                 throw new ArgumentNullException(nameof(request));
             }
 
-            FieldsParserResult fieldsResult = null;
+            FieldsParserResult fieldsResult = default;
 
             var httpContext = request.HttpContext;
 
@@ -52,7 +52,7 @@ namespace PartialResponse.AspNetCore.Mvc.Formatters.Json
 
             if (isError)
             {
-                return FieldsParserResult.Failure();
+                return FieldsParserResult.Failed();
             }
 
             return FieldsParserResult.Success(fields);

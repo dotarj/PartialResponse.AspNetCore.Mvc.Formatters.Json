@@ -7,20 +7,13 @@ namespace PartialResponse.AspNetCore.Mvc.Formatters.Json
     /// <summary>
     /// Result of a <see cref="IFieldsParser.Parse"/> operation.
     /// </summary>
-    public class FieldsParserResult
+    public readonly struct FieldsParserResult
     {
-        private static readonly FieldsParserResult FailureValue = new FieldsParserResult(hasError: true);
-        private static readonly FieldsParserResult NoValueValue = new FieldsParserResult(hasError: false);
-
-        private FieldsParserResult(bool hasError)
+        private FieldsParserResult(Fields? fields, bool hasError)
         {
+            this.Fields = fields ?? default;
+            this.IsFieldsSet = fields.HasValue;
             this.HasError = hasError;
-        }
-
-        private FieldsParserResult(Fields fields)
-        {
-            this.Fields = fields;
-            this.IsFieldsSet = true;
         }
 
         /// <summary>
@@ -45,9 +38,9 @@ namespace PartialResponse.AspNetCore.Mvc.Formatters.Json
         /// <returns>An <see cref="FieldsParserResult"/> indicating the <see cref="IFieldsParser.Parse"/>
         /// operation failed i.e. with <see cref="HasError"/> <c>true</c>.
         /// </returns>
-        public static FieldsParserResult Failure()
+        public static FieldsParserResult Failed()
         {
-            return FailureValue;
+            return new FieldsParserResult(null, true);
         }
 
         /// <summary>
@@ -61,7 +54,7 @@ namespace PartialResponse.AspNetCore.Mvc.Formatters.Json
         /// </returns>
         public static FieldsParserResult Success(Fields fields)
         {
-            return new FieldsParserResult(fields);
+            return new FieldsParserResult(fields, false);
         }
 
         /// <summary>
@@ -74,7 +67,7 @@ namespace PartialResponse.AspNetCore.Mvc.Formatters.Json
         /// </returns>
         public static FieldsParserResult NoValue()
         {
-            return NoValueValue;
+            return new FieldsParserResult(null, false);
         }
     }
 }
