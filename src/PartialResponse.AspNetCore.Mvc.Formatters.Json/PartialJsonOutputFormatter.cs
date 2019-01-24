@@ -10,7 +10,6 @@ using Microsoft.AspNetCore.Mvc.Formatters;
 using Newtonsoft.Json;
 using PartialResponse.AspNetCore.Mvc.Formatters.Json;
 using PartialResponse.AspNetCore.Mvc.Formatters.Json.Internal;
-using PartialResponse.Core;
 
 namespace PartialResponse.AspNetCore.Mvc.Formatters
 {
@@ -97,11 +96,11 @@ namespace PartialResponse.AspNetCore.Mvc.Formatters
 
             var response = context.HttpContext.Response;
 
-            Fields? fields = null;
+            FieldsParserResult fieldsParserResult = default;
 
             if (!this.ShouldBypassPartialResponse(context.HttpContext))
             {
-                var fieldsParserResult = this.fieldsParser.Parse(context.HttpContext.Request);
+                fieldsParserResult = this.fieldsParser.Parse(context.HttpContext.Request);
 
                 if (fieldsParserResult.HasError && !this.options.IgnoreParseErrors)
                 {
@@ -109,16 +108,11 @@ namespace PartialResponse.AspNetCore.Mvc.Formatters
 
                     return;
                 }
-
-                if (fieldsParserResult.IsFieldsSet && !fieldsParserResult.HasError)
-                {
-                    fields = fieldsParserResult.Fields;
-                }
             }
 
             using (var writer = context.WriterFactory(response.Body, selectedEncoding))
             {
-                this.WriteObject(writer, context.Object, fields);
+                this.WriteObject(writer, context.Object, fieldsParserResult);
 
                 // Perf: call FlushAsync to call WriteAsync on the stream with any content left in the TextWriter's
                 // buffers. This is better than just letting dispose handle it (which would result in a synchronous
@@ -168,15 +162,15 @@ namespace PartialResponse.AspNetCore.Mvc.Formatters
             return httpContext.Response.StatusCode != 200;
         }
 
-        private void WriteObject(TextWriter writer, object value, Fields? fields)
+        private void WriteObject(TextWriter writer, object value, FieldsParserResult fieldsParserResult)
         {
             using (var jsonWriter = this.CreateJsonWriter(writer))
             {
                 var jsonSerializer = this.CreateJsonSerializer();
 
-                if (fields.HasValue)
+                if (fieldsParserResult.IsFieldsSet && !fieldsParserResult.HasError)
                 {
-                    jsonSerializer.Serialize(jsonWriter, value, path => fields.Value.Matches(path, this.options.IgnoreCase));
+                    jsonSerializer.Serialize(jsonWriter, value, path => fieldsParserResult.Fields.Matches(path, this.options.IgnoreCase));
                 }
                 else
                 {
