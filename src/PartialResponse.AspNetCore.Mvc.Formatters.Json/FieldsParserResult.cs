@@ -1,4 +1,4 @@
-﻿// Copyright (c) Arjen Post. See LICENSE and NOTICE in the project root for license information.
+﻿// Copyright (c) Arjen Post and contributors. See LICENSE and NOTICE in the project root for license information.
 
 using PartialResponse.Core;
 
