@@ -3,7 +3,7 @@
 [![apache](https://img.shields.io/badge/license-Apache%202-green.svg)](https://raw.githubusercontent.com/dotarj/PartialResponse.AspNetCore.Mvc.Formatters.Json/master/LICENSE)
 [![nuget](https://img.shields.io/nuget/v/PartialResponse.AspNetCore.Mvc.Formatters.Json.svg)](https://www.nuget.org/packages/PartialResponse.AspNetCore.Mvc.Formatters.Json)
 [![appveyor](https://ci.appveyor.com/api/projects/status/y8kahoej4avaqwwm?svg=true)](https://ci.appveyor.com/project/dotarj/partialresponse-aspnetcore-mvc-formatters-json)
-[![sonarqube](https://sonarcloud.io/api/badges/gate?key=PartialResponse.AspNetCore.Mvc.Formatters.Json)](https://sonarcloud.io/dashboard?id=PartialResponse.AspNetCore.Mvc.Formatters.Json)
+[![sonarqube](https://sonarcloud.io/api/project_badges/measure?project=PartialResponse.AspNetCore.Mvc.Formatters.Json&metric=alert_status)](https://sonarcloud.io/dashboard?id=PartialResponse.AspNetCore.Mvc.Formatters.Json)
 [![codecov](https://codecov.io/gh/dotarj/PartialResponse.AspNetCore.Mvc.Formatters.Json/branch/master/graph/badge.svg)](https://codecov.io/gh/dotarj/PartialResponse.AspNetCore.Mvc.Formatters.Json)
 
 PartialResponse.AspNetCore.Mvc.Formatters.Json provides JSON partial response (partial resource) support for ASP.NET Core MVC. This package is also [available for ASP.NET Web API](https://github.com/dotarj/PartialResponse/).
