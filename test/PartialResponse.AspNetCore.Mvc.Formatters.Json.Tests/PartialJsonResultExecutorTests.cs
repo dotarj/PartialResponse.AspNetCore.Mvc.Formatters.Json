@@ -172,5 +172,70 @@ namespace PartialResponse.AspNetCore.Mvc.Formatters.Json.Tests
             // Assert
             Assert.Equal("{}", this.body.ToString());
         }
+
+        [Fact]
+        public async Task TheExecuteAsyncMethodShouldAlwaysSerializeIgnoredFields()
+        {
+            // Arrange
+            Fields.TryParse("foo", out var fields);
+
+            Mock.Get(this.fieldsParser)
+                .Setup(fieldsParser => fieldsParser.Parse(this.httpRequest))
+                .Returns(FieldsParserResult.Success(fields));
+
+            this.partialJsonOptions.IgnoredFields = new[] { "bar" };
+
+            var partialJsonResult = new PartialJsonResult(new { bar = "baz" }, new JsonSerializerSettings());
+
+            // Act
+            await this.executor.ExecuteAsync(this.actionContext, partialJsonResult);
+
+            // Assert
+            Assert.Equal("{\"bar\":\"baz\"}", this.body.ToString());
+        }
+
+        [Fact]
+        public async Task TheExecuteAsyncMethodShouldAlwaysSerializeIgnoredFieldsIgnoringCase()
+        {
+            // Arrange
+            Fields.TryParse("foo", out var fields);
+
+            Mock.Get(this.fieldsParser)
+                .Setup(fieldsParser => fieldsParser.Parse(this.httpRequest))
+                .Returns(FieldsParserResult.Success(fields));
+
+            this.partialJsonOptions.IgnoreCase = true;
+            this.partialJsonOptions.IgnoredFields = new[] { "BAR" };
+
+            var partialJsonResult = new PartialJsonResult(new { bar = "baz" }, new JsonSerializerSettings());
+
+            // Act
+            await this.executor.ExecuteAsync(this.actionContext, partialJsonResult);
+
+            // Assert
+            Assert.Equal("{\"bar\":\"baz\"}", this.body.ToString());
+        }
+
+        [Fact]
+        public async Task TheExecuteAsyncMethodShouldAlwaysSerializeIgnoredFieldsNotIgnoringCase()
+        {
+            // Arrange
+            Fields.TryParse("foo", out var fields);
+
+            Mock.Get(this.fieldsParser)
+                .Setup(fieldsParser => fieldsParser.Parse(this.httpRequest))
+                .Returns(FieldsParserResult.Success(fields));
+
+            this.partialJsonOptions.IgnoreCase = false;
+            this.partialJsonOptions.IgnoredFields = new[] { "BAR" };
+
+            var partialJsonResult = new PartialJsonResult(new { bar = "baz" }, new JsonSerializerSettings());
+
+            // Act
+            await this.executor.ExecuteAsync(this.actionContext, partialJsonResult);
+
+            // Assert
+            Assert.Equal("{}", this.body.ToString());
+        }
     }
 }
