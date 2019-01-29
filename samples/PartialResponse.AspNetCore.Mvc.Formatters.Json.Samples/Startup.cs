@@ -20,7 +20,11 @@ namespace PartialResponse.AspNetCore.Mvc.Formatters.Json.Samples
 
         public void ConfigureServices(IServiceCollection services)
         {
-            services.Configure<MvcPartialJsonOptions>(options => options.IgnoreCase = true);
+            services.Configure<MvcPartialJsonOptions>(options =>
+            {
+                options.IgnoreCase = true;
+                options.IgnoredFields = new[] { "totalCount" };
+            });
 
             services
                 .AddMvc(options => options.OutputFormatters.RemoveType<JsonOutputFormatter>())

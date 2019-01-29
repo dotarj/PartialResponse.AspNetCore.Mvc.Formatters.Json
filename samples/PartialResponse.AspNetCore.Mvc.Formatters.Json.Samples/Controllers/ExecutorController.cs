@@ -9,7 +9,7 @@ namespace PartialResponse.AspNetCore.Mvc.Formatters.Json.Samples.Controllers
     {
         public IActionResult Index()
         {
-            var response = new List<dynamic>()
+            var items = new List<dynamic>()
             {
                 new
                 {
@@ -38,6 +38,12 @@ namespace PartialResponse.AspNetCore.Mvc.Formatters.Json.Samples.Controllers
                         Qux = 6
                     }
                 }
+            };
+
+            var response = new
+            {
+                Items = items,
+                TotalCount = items.Count
             };
 
             return this.PartialJson(response);
