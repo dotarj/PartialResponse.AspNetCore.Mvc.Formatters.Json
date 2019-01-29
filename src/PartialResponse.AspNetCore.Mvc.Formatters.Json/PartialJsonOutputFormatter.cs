@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Mvc.Formatters;
 using Newtonsoft.Json;
 using PartialResponse.AspNetCore.Mvc.Formatters.Json;
 using PartialResponse.AspNetCore.Mvc.Formatters.Json.Internal;
+using PartialResponse.Core;
 
 namespace PartialResponse.AspNetCore.Mvc.Formatters
 {
@@ -176,13 +177,28 @@ namespace PartialResponse.AspNetCore.Mvc.Formatters
 
                 if (fieldsParserResult.IsFieldsSet && !fieldsParserResult.HasError)
                 {
-                    jsonSerializer.Serialize(jsonWriter, value, path => fieldsParserResult.Fields.Matches(path, this.options.IgnoreCase));
+                    jsonSerializer.Serialize(jsonWriter, value, path => this.ShouldSerialize(path, fieldsParserResult.Fields, this.options));
                 }
                 else
                 {
                     jsonSerializer.Serialize(jsonWriter, value);
                 }
             }
+        }
+
+        private bool ShouldSerialize(string path, Fields fields, MvcPartialJsonOptions options)
+        {
+            var parsedIgnoredFields = options.ParsedIgnoredFields;
+
+            if (parsedIgnoredFields.HasValue)
+            {
+                if (parsedIgnoredFields.Value.Matches(path, options.IgnoreCase))
+                {
+                    return true;
+                }
+            }
+
+            return fields.Matches(path, options.IgnoreCase);
         }
     }
 }

@@ -11,6 +11,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.Net.Http.Headers;
 using Newtonsoft.Json;
+using PartialResponse.Core;
 
 namespace PartialResponse.AspNetCore.Mvc.Formatters.Json.Internal
 {
@@ -138,7 +139,7 @@ namespace PartialResponse.AspNetCore.Mvc.Formatters.Json.Internal
 
                     if (fieldsParserResult.IsFieldsSet && !fieldsParserResult.HasError)
                     {
-                        jsonSerializer.Serialize(jsonWriter, result.Value, path => fieldsParserResult.Fields.Matches(path, this.Options.IgnoreCase));
+                        jsonSerializer.Serialize(jsonWriter, result.Value, path => this.ShouldSerialize(path, fieldsParserResult.Fields, this.Options));
                     }
                     else
                     {
@@ -148,6 +149,21 @@ namespace PartialResponse.AspNetCore.Mvc.Formatters.Json.Internal
             }
 
             return Task.CompletedTask;
+        }
+
+        private bool ShouldSerialize(string path, Fields fields, MvcPartialJsonOptions options)
+        {
+            var parsedIgnoredFields = options.ParsedIgnoredFields;
+
+            if (parsedIgnoredFields.HasValue)
+            {
+                if (parsedIgnoredFields.Value.Matches(path, options.IgnoreCase))
+                {
+                    return true;
+                }
+            }
+
+            return fields.Matches(path, options.IgnoreCase);
         }
     }
 }
