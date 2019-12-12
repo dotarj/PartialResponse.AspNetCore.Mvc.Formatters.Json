@@ -4,8 +4,9 @@
     <DebugType Condition="$(codecov) == 'true'">full</DebugType>
     <IsPackable>false</IsPackable>
     <LangVersion>latest</LangVersion>
-    <TargetFramework>net471</TargetFramework>
+    <TargetFrameworks>net471;netcoreapp3.0</TargetFrameworks>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <DefineConstants Condition=" '$(TargetFramework)' == 'net471' ">ASPNETCORE2</DefineConstants>
   </PropertyGroup>
 
   <ItemGroup>

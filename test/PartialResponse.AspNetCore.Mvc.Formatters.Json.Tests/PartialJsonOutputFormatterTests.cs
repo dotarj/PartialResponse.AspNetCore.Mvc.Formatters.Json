@@ -6,8 +6,8 @@ using System.IO;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Formatters;
-using Microsoft.Extensions.Options;
 using Moq;
 using Newtonsoft.Json;
 using PartialResponse.Core;
@@ -19,8 +19,8 @@ namespace PartialResponse.AspNetCore.Mvc.Formatters.Json.Tests
     {
         private readonly PartialJsonOutputFormatter formatter;
         private readonly IFieldsParser fieldsParser = Mock.Of<IFieldsParser>();
-        private readonly IOptions<MvcPartialJsonOptions> options = Mock.Of<IOptions<MvcPartialJsonOptions>>();
-        private readonly MvcPartialJsonOptions partialJsonOptions = new MvcPartialJsonOptions();
+        private readonly MvcPartialJsonOptions mvcPartialJsonOptions = new MvcPartialJsonOptions();
+        private readonly MvcOptions mvcOptions = new MvcOptions();
         private readonly HttpContext httpContext = Mock.Of<HttpContext>();
         private readonly Dictionary<object, object> httpContextItems = new Dictionary<object, object>();
         private readonly HttpRequest httpRequest = Mock.Of<HttpRequest>();
@@ -45,11 +45,11 @@ namespace PartialResponse.AspNetCore.Mvc.Formatters.Json.Tests
                 .SetupGet(httpRequest => httpRequest.HttpContext)
                 .Returns(this.httpContext);
 
-            Mock.Get(this.options)
-                .SetupGet(options => options.Value)
-                .Returns(this.partialJsonOptions);
-
-            this.formatter = new PartialJsonOutputFormatter(new JsonSerializerSettings(), this.fieldsParser, Mock.Of<ArrayPool<char>>(), this.partialJsonOptions);
+#if ASPNETCORE2
+            this.formatter = new PartialJsonOutputFormatter(new JsonSerializerSettings(), this.fieldsParser, Mock.Of<ArrayPool<char>>(), this.mvcPartialJsonOptions);
+#else
+            this.formatter = new PartialJsonOutputFormatter(new JsonSerializerSettings(), this.fieldsParser, Mock.Of<ArrayPool<char>>(), this.mvcPartialJsonOptions, this.mvcOptions);
+#endif
         }
 
         [Fact]
@@ -64,8 +64,8 @@ namespace PartialResponse.AspNetCore.Mvc.Formatters.Json.Tests
                 .Setup(fieldsParser => fieldsParser.Parse(this.httpRequest))
                 .Returns(FieldsParserResult.Failed());
 
-            this.partialJsonOptions.IgnoreParseErrors = false;
-            this.partialJsonOptions.IgnoreCase = false;
+            this.mvcPartialJsonOptions.IgnoreParseErrors = false;
+            this.mvcPartialJsonOptions.IgnoreCase = false;
 
             var writeContext = this.CreateWriteContext(new { });
 
@@ -91,8 +91,8 @@ namespace PartialResponse.AspNetCore.Mvc.Formatters.Json.Tests
                 .Setup(fieldsParser => fieldsParser.Parse(this.httpRequest))
                 .Returns(FieldsParserResult.Failed());
 
-            this.partialJsonOptions.IgnoreParseErrors = true;
-            this.partialJsonOptions.IgnoreCase = false;
+            this.mvcPartialJsonOptions.IgnoreParseErrors = true;
+            this.mvcPartialJsonOptions.IgnoreCase = false;
 
             var writeContext = this.CreateWriteContext(new { foo = "bar" });
 
@@ -164,7 +164,7 @@ namespace PartialResponse.AspNetCore.Mvc.Formatters.Json.Tests
                 .Setup(fieldsParser => fieldsParser.Parse(this.httpRequest))
                 .Returns(FieldsParserResult.Success(fields));
 
-            this.partialJsonOptions.IgnoreCase = true;
+            this.mvcPartialJsonOptions.IgnoreCase = true;
 
             var writeContext = this.CreateWriteContext(new { foo = "bar" });
 
@@ -189,7 +189,7 @@ namespace PartialResponse.AspNetCore.Mvc.Formatters.Json.Tests
                 .Setup(fieldsParser => fieldsParser.Parse(this.httpRequest))
                 .Returns(FieldsParserResult.Success(fields));
 
-            this.partialJsonOptions.IgnoreCase = false;
+            this.mvcPartialJsonOptions.IgnoreCase = false;
 
             var writeContext = this.CreateWriteContext(new { foo = "bar" });
 
