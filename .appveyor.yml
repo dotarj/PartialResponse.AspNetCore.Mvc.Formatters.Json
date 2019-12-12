@@ -11,7 +11,7 @@ environment:
   SONARQUBE_GITHUB_TOKEN:
     secure: R0EXcWv91EY6EVoT7NmIPXxU6ZfqIK0Rhbe2uT9pboQQT99XuVQENS1JE+izE7bI
 
-image: Visual Studio 2017
+image: Visual Studio 2019
 
 skip_tags: false
 
@@ -124,7 +124,7 @@ after_test:
       Execute-Action "generating code coverage report" {
           dotnet build -c $env:CONFIGURATION --no-restore -v m /p:codecov=true
 
-          OpenCover.Console.exe -target:"$env:XUNIT20/xunit.console.x86.exe" -targetargs:"test/$env:APPVEYOR_PROJECT_NAME.Tests/bin/$env:CONFIGURATION/net471/$env:APPVEYOR_PROJECT_NAME.Tests.dll -noshadow" -register:user -filter:"+[*]* -[$env:APPVEYOR_PROJECT_NAME.Tests]* -[$env:APPVEYOR_PROJECT_NAME.Samples]*" -hideskipped:All -output:"./coverage.xml"
+          OpenCover.Console.exe -target:"$env:XUNIT20/xunit.console.x86.exe" -targetargs:"test/$env:APPVEYOR_PROJECT_NAME.Tests/bin/$env:CONFIGURATION/netcoreapp3.0/$env:APPVEYOR_PROJECT_NAME.Tests.dll -noshadow" -register:user -filter:"+[*]* -[$env:APPVEYOR_PROJECT_NAME.Tests]* -[$env:APPVEYOR_PROJECT_NAME.Samples]*" -hideskipped:All -output:"./coverage.xml"
       }
 
 - ps: |
