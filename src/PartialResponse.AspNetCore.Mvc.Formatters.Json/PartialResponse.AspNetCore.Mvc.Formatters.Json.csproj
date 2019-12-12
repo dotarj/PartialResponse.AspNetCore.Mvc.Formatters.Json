@@ -5,9 +5,10 @@
     <DebugType Condition="$(codecov) != 'true'">pdbonly</DebugType>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <LangVersion>latest</LangVersion>
-    <TargetFrameworks>netstandard2.0</TargetFrameworks>
+    <TargetFrameworks>netstandard2.0;netcoreapp3.0</TargetFrameworks>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <Version>0.0.0</Version>
+    <DefineConstants Condition=" '$(TargetFramework)' == 'netstandard2.0' ">ASPNETCORE2</DefineConstants>
   </PropertyGroup>
 
   <PropertyGroup>
@@ -18,7 +19,7 @@
 
   <PropertyGroup>
     <Authors>Arjen Post</Authors>
-    <Copyright>Copyright 2018 Arjen Post</Copyright>
+    <Copyright>Copyright 2019 Arjen Post</Copyright>
     <Description>ASP.NET Core MVC formatter for partial response (fields) JSON output.</Description>
     <PackageId>PartialResponse.AspNetCore.Mvc.Formatters.Json</PackageId>
     <PackageLicenseUrl>https://www.apache.org/licenses/LICENSE-2.0</PackageLicenseUrl>
@@ -28,14 +29,21 @@
     <RepositoryUrl>https://github.com/dotarj/PartialResponse.AspNetCore.Mvc.Formatters.Json</RepositoryUrl>
   </PropertyGroup>
 
+  <ItemGroup Condition=" '$(TargetFramework)' == 'netcoreapp3.0' ">
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+
   <ItemGroup>
-    <PackageReference Include="Microsoft.AspNetCore.Mvc.Core" Version="2.1.1" />
-    <PackageReference Include="Newtonsoft.Json" Version="11.0.2" />
     <PackageReference Include="PartialResponse.Core" Version="2.0.0" />
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="Newtonsoft.Json" Version="12.0.2" />
     <PackageReference Include="StyleCop.Analyzers" Version="1.0.2" PrivateAssets="All" />
+  </ItemGroup>
+
+  <ItemGroup Condition=" '$(TargetFramework)' == 'netstandard2.0' ">
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.Core" Version="2.1.1" />
   </ItemGroup>
 
   <ItemGroup>

@@ -8,8 +8,8 @@ namespace PartialResponse.AspNetCore.Mvc.Formatters.Json.Internal
     {
         public static readonly MediaTypeHeaderValue ApplicationJson = MediaTypeHeaderValue.Parse("application/json").CopyAsReadOnly();
 
-        public static readonly MediaTypeHeaderValue ApplicationWildcardJson = MediaTypeHeaderValue.Parse("application/*+json").CopyAsReadOnly();
-
         public static readonly MediaTypeHeaderValue TextJson = MediaTypeHeaderValue.Parse("text/json").CopyAsReadOnly();
+
+        public static readonly MediaTypeHeaderValue ApplicationAnyJsonSyntax = MediaTypeHeaderValue.Parse("application/*+json").CopyAsReadOnly();
     }
 }

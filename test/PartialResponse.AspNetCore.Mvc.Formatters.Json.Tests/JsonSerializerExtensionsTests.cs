@@ -157,7 +157,7 @@ namespace PartialResponse.AspNetCore.Mvc.Formatters.Json.Tests
             var value = new List<dynamic> { new { foo = "bar" }, new { foo = "bar" } };
             var count = 0;
 
-            bool shouldSerialize(string path)
+            bool ShouldSerialize(string path)
             {
                 count++;
 
@@ -165,7 +165,7 @@ namespace PartialResponse.AspNetCore.Mvc.Formatters.Json.Tests
             }
 
             // Act
-            this.jsonSerializer.Serialize(this.jsonWriter, value, shouldSerialize);
+            this.jsonSerializer.Serialize(this.jsonWriter, value, ShouldSerialize);
 
             // Assert
             Assert.Equal(1, count);
