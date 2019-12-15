@@ -110,7 +110,7 @@ after_build:
 
 - ps: |
       Execute-Action "creating NuGet package" {
-          dotnet pack src/$env:APPVEYOR_PROJECT_NAME -c $env:CONFIGURATION --no-restore --no-build --include-symbols --output ../../artifacts -v m
+          dotnet pack src/$env:APPVEYOR_PROJECT_NAME -c $env:CONFIGURATION --no-restore --no-build --include-symbols --output ./artifacts -v m
       }
 
 test_script:
@@ -140,7 +140,7 @@ after_test:
       }
 
 artifacts:
-  - path: artifacts/*.nupkg
+  - path: "./artifacts/*.nupkg"
     name: NuGet
 
 deploy:
