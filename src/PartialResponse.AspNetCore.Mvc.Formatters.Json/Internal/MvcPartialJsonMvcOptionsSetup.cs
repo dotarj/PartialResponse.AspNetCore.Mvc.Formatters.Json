@@ -3,6 +3,7 @@
 using System;
 using System.Buffers;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Formatters;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.ObjectPool;
@@ -55,7 +56,12 @@ namespace PartialResponse.AspNetCore.Mvc.Formatters.Json.Internal
         /// <param name="options">The MVC options.</param>
         public void Configure(MvcOptions options)
         {
+#if ASPNETCORE2
             options.OutputFormatters.Add(new PartialJsonOutputFormatter(this.partialJsonOptions.SerializerSettings, this.fieldsParser, this.charPool, this.partialJsonOptions));
+#else
+            options.OutputFormatters.RemoveType<SystemTextJsonOutputFormatter>();
+            options.OutputFormatters.Add(new PartialJsonOutputFormatter(this.partialJsonOptions.SerializerSettings, this.fieldsParser, this.charPool, this.partialJsonOptions, options));
+#endif
             options.FormatterMappings.SetMediaTypeMappingForFormat("json", MediaTypeHeaderValue.Parse("application/json"));
             options.ModelMetadataDetailsProviders.Add(new SuppressChildValidationMetadataProvider(typeof(JToken)));
         }

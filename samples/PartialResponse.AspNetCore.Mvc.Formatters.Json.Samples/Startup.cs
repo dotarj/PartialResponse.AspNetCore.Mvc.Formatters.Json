@@ -23,20 +23,15 @@ namespace PartialResponse.AspNetCore.Mvc.Formatters.Json.Samples
             services.Configure<MvcPartialJsonOptions>(options => options.IgnoreCase = true);
 
             services
-                .AddMvc(options => options.OutputFormatters.RemoveType<JsonOutputFormatter>())
+                .AddMvc()
                 .AddPartialJsonFormatters();
         }
 
-        public void Configure(IApplicationBuilder app, ILoggerFactory loggerFactory)
+        public void Configure(IApplicationBuilder app)
         {
-            loggerFactory.AddConsole(this.configuration.GetSection("Logging"));
-
-            app.UseMvc(routes =>
-            {
-                routes.MapRoute(
-                    name: "default",
-                    template: "{controller=Home}/{action=Index}");
-            });
+            app
+                .UseRouting()
+                .UseEndpoints(endpoints => endpoints.MapControllerRoute("default", "{controller=Home}/{action=Index}/{id?}"));
         }
     }
 }

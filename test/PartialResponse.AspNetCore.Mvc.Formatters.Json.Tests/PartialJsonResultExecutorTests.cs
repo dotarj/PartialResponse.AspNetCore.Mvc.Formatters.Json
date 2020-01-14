@@ -24,8 +24,10 @@ namespace PartialResponse.AspNetCore.Mvc.Formatters.Json.Tests
         private readonly IFieldsParser fieldsParser = Mock.Of<IFieldsParser>();
         private readonly IHttpResponseStreamWriterFactory writerFactory = Mock.Of<IHttpResponseStreamWriterFactory>();
         private readonly ILogger<PartialJsonResultExecutor> logger = Mock.Of<ILogger<PartialJsonResultExecutor>>();
-        private readonly IOptions<MvcPartialJsonOptions> options = Mock.Of<IOptions<MvcPartialJsonOptions>>();
-        private readonly MvcPartialJsonOptions partialJsonOptions = new MvcPartialJsonOptions();
+        private readonly IOptions<MvcPartialJsonOptions> optionsMvcPartialJsonOptions = Mock.Of<IOptions<MvcPartialJsonOptions>>();
+        private readonly MvcPartialJsonOptions mvcPartialJsonOptions = new MvcPartialJsonOptions();
+        private readonly IOptions<MvcOptions> optionsMvcOptions = Mock.Of<IOptions<MvcOptions>>();
+        private readonly MvcOptions mvcOptions = new MvcOptions();
         private readonly HttpContext httpContext = Mock.Of<HttpContext>();
         private readonly HttpRequest httpRequest = Mock.Of<HttpRequest>();
         private readonly HttpResponse httpResponse = Mock.Of<HttpResponse>();
@@ -45,11 +47,19 @@ namespace PartialResponse.AspNetCore.Mvc.Formatters.Json.Tests
                 .Setup(writerFactory => writerFactory.CreateWriter(It.IsAny<Stream>(), It.IsAny<Encoding>()))
                 .Returns(new StringWriter(this.body));
 
-            Mock.Get(this.options)
+            Mock.Get(this.optionsMvcPartialJsonOptions)
                 .SetupGet(options => options.Value)
-                .Returns(this.partialJsonOptions);
+                .Returns(this.mvcPartialJsonOptions);
 
-            this.executor = new PartialJsonResultExecutor(this.writerFactory, this.logger, this.options, this.fieldsParser, Mock.Of<ArrayPool<char>>());
+            Mock.Get(this.optionsMvcOptions)
+                .SetupGet(optionsMvcOptions => optionsMvcOptions.Value)
+                .Returns(this.mvcOptions);
+
+#if ASPNETCORE2
+            this.executor = new PartialJsonResultExecutor(this.writerFactory, this.logger, this.optionsMvcPartialJsonOptions, this.fieldsParser, Mock.Of<ArrayPool<char>>());
+#else
+            this.executor = new PartialJsonResultExecutor(this.writerFactory, this.logger, this.optionsMvcOptions, this.optionsMvcPartialJsonOptions, this.fieldsParser, Mock.Of<ArrayPool<char>>());
+#endif
             this.actionContext = new ActionContext() { HttpContext = this.httpContext };
         }
 
@@ -83,7 +93,7 @@ namespace PartialResponse.AspNetCore.Mvc.Formatters.Json.Tests
 
             var partialJsonResult = new PartialJsonResult(new { foo = "bar" });
 
-            this.partialJsonOptions.IgnoreParseErrors = true;
+            this.mvcPartialJsonOptions.IgnoreParseErrors = true;
 
             // Act
             await this.executor.ExecuteAsync(this.actionContext, partialJsonResult);
@@ -141,7 +151,7 @@ namespace PartialResponse.AspNetCore.Mvc.Formatters.Json.Tests
                 .Setup(fieldsParser => fieldsParser.Parse(this.httpRequest))
                 .Returns(FieldsParserResult.Success(fields));
 
-            this.partialJsonOptions.IgnoreCase = true;
+            this.mvcPartialJsonOptions.IgnoreCase = true;
 
             var partialJsonResult = new PartialJsonResult(new { foo = "bar", baz = "qux" }, new JsonSerializerSettings());
 
@@ -162,7 +172,7 @@ namespace PartialResponse.AspNetCore.Mvc.Formatters.Json.Tests
                 .Setup(fieldsParser => fieldsParser.Parse(this.httpRequest))
                 .Returns(FieldsParserResult.Success(fields));
 
-            this.partialJsonOptions.IgnoreCase = false;
+            this.mvcPartialJsonOptions.IgnoreCase = false;
 
             var partialJsonResult = new PartialJsonResult(new { foo = "bar", baz = "qux" }, new JsonSerializerSettings());
 
