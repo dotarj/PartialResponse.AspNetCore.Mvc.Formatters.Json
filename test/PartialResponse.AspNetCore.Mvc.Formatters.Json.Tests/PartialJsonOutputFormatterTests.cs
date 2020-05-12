@@ -201,6 +201,83 @@ namespace PartialResponse.AspNetCore.Mvc.Formatters.Json.Tests
         }
 
         [Fact]
+        public async Task TheWriteResponseBodyAsyncMethodShouldAlwaysSerializeIgnoredFields()
+        {
+            // Arrange
+            Mock.Get(this.httpResponse)
+                .SetupGet(httpResponse => httpResponse.StatusCode)
+                .Returns(200);
+
+            Fields.TryParse("foo", out var fields);
+
+            Mock.Get(this.fieldsParser)
+                .Setup(fieldsParser => fieldsParser.Parse(this.httpRequest))
+                .Returns(FieldsParserResult.Success(fields));
+
+            this.partialJsonOptions.IgnoredFields = new[] { "bar" };
+
+            var writeContext = this.CreateWriteContext(new { bar = "baz" });
+
+            // Act
+            await this.formatter.WriteResponseBodyAsync(writeContext, Encoding.UTF8);
+
+            // Assert
+            Assert.Equal("{\"bar\":\"baz\"}", this.body.ToString());
+        }
+
+        [Fact]
+        public async Task TheWriteResponseBodyAsyncMethodShouldAlwaysSerializeIgnoredFieldsIgnoringCase()
+        {
+            // Arrange
+            Mock.Get(this.httpResponse)
+                .SetupGet(httpResponse => httpResponse.StatusCode)
+                .Returns(200);
+
+            Fields.TryParse("foo", out var fields);
+
+            Mock.Get(this.fieldsParser)
+                .Setup(fieldsParser => fieldsParser.Parse(this.httpRequest))
+                .Returns(FieldsParserResult.Success(fields));
+
+            this.partialJsonOptions.IgnoreCase = true;
+            this.partialJsonOptions.IgnoredFields = new[] { "BAR" };
+
+            var writeContext = this.CreateWriteContext(new { bar = "baz" });
+
+            // Act
+            await this.formatter.WriteResponseBodyAsync(writeContext, Encoding.UTF8);
+
+            // Assert
+            Assert.Equal("{\"bar\":\"baz\"}", this.body.ToString());
+        }
+
+        [Fact]
+        public async Task TheWriteResponseBodyAsyncMethodShouldAlwaysSerializeIgnoredFieldsNotIgnoringCase()
+        {
+            // Arrange
+            Mock.Get(this.httpResponse)
+                .SetupGet(httpResponse => httpResponse.StatusCode)
+                .Returns(200);
+
+            Fields.TryParse("foo", out var fields);
+
+            Mock.Get(this.fieldsParser)
+                .Setup(fieldsParser => fieldsParser.Parse(this.httpRequest))
+                .Returns(FieldsParserResult.Success(fields));
+
+            this.partialJsonOptions.IgnoreCase = false;
+            this.partialJsonOptions.IgnoredFields = new[] { "BAR" };
+
+            var writeContext = this.CreateWriteContext(new { bar = "baz" });
+
+            // Act
+            await this.formatter.WriteResponseBodyAsync(writeContext, Encoding.UTF8);
+
+            // Assert
+            Assert.Equal("{}", this.body.ToString());
+        }
+
+        [Fact]
         public async Task TheWriteResponseBodyAsyncMethodShouldBypassPartialResponseIfConfigured()
         {
             // Arrange

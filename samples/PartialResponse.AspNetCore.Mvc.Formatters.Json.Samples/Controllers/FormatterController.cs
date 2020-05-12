@@ -7,9 +7,9 @@ namespace PartialResponse.AspNetCore.Mvc.Formatters.Json.Samples.Controllers
 {
     public class FormatterController : Controller
     {
-        public List<dynamic> Index()
+        public dynamic Index()
         {
-            return new List<dynamic>()
+            var items = new List<dynamic>()
             {
                 new
                 {
@@ -38,6 +38,12 @@ namespace PartialResponse.AspNetCore.Mvc.Formatters.Json.Samples.Controllers
                         Qux = 6
                     }
                 }
+            };
+
+            return new
+            {
+                Items = items,
+                TotalCount = items.Count
             };
         }
     }
